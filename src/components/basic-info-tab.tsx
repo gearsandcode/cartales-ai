@@ -26,7 +26,7 @@ export function BasicInfoTab({
               name="year"
               value={carDetails.year}
               onChange={onInputChange}
-              placeholder="e.g., 1999"
+              placeholder="e.g., 1970"
             />
           </div>
           <div>
@@ -36,7 +36,7 @@ export function BasicInfoTab({
               name="make"
               value={carDetails.make}
               onChange={onInputChange}
-              placeholder="e.g., Toyota"
+              placeholder="e.g., Chevrolet"
             />
           </div>
           <div>
@@ -46,7 +46,7 @@ export function BasicInfoTab({
               name="model"
               value={carDetails.model}
               onChange={onInputChange}
-              placeholder="e.g., Corolla"
+              placeholder="e.g., Monte Carlo"
             />
           </div>
           <div>
@@ -56,7 +56,7 @@ export function BasicInfoTab({
               name="ownerName"
               value={carDetails.ownerName}
               onChange={onInputChange}
-              placeholder="Your name"
+              placeholder="e.g., Jesse"
             />
           </div>
         </div>
@@ -68,7 +68,7 @@ export function BasicInfoTab({
               name="purchaseYear"
               value={carDetails.purchaseYear}
               onChange={onInputChange}
-              placeholder="e.g., 2011"
+              placeholder="e.g., 1995"
             />
           </div>
           <div>
@@ -88,7 +88,7 @@ export function BasicInfoTab({
               name="location"
               value={carDetails.location}
               onChange={onInputChange}
-              placeholder="e.g., Seattle, WA"
+              placeholder="e.g., Independence, MO"
             />
           </div>
           <div>
