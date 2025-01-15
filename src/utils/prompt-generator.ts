@@ -2,11 +2,11 @@
 import { CarDetails } from "../types/car-details";
 
 export function generatePrompt(details: CarDetails): string {
-  let customizationsText = details.customizations
+  const customizationsText = details.customizations
     ? `\n\nCustomizations and Modifications: ${details.customizations}`
     : "";
 
-  let maintenanceText = details.maintenance
+  const maintenanceText = details.maintenance
     ? `\n\nMaintenance History: ${details.maintenance}`
     : "";
 
