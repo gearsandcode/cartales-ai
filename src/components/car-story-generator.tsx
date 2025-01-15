@@ -1,7 +1,5 @@
 "use client";
 
-"use client";
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,6 +19,10 @@ import { DetailsTab } from "./details-tab";
 import { StoryDisplay } from "./story-display";
 import { StoryRequest } from "@/types/story-sections";
 import { StoryResponse } from "@/types/story-response";
+import {
+  generateOwnershipChain,
+  validateOwnershipChain,
+} from "@/utils/ownership-generator";
 
 interface FieldValidation {
   isValid: boolean;
@@ -150,25 +152,35 @@ export function CarStoryGenerator() {
     setStoryParts([]);
 
     try {
+      // Generate ownership chain
+      const ownershipChain = generateOwnershipChain(carDetails);
+      if (
+        !ownershipChain ||
+        !validateOwnershipChain(ownershipChain, parseInt(carDetails.year))
+      ) {
+        setError(
+          "Failed to generate valid ownership timeline. Please check the car details."
+        );
+        return;
+      }
+
       // Generate introduction
       const intro = await generateStorySection({
         type: "introduction",
         carDetails,
+        ownershipChain,
       });
       setStoryParts((prev) => [...prev, intro]);
 
       // Generate previous owner stories
-      const numPreviousOwners =
-        carDetails.previousOwners === "random"
-          ? Math.floor(Math.random() * 3) + 1
-          : carDetails.previousOwners;
-
       const previousOwnerStories: StoryResponse[] = [];
-      for (let i = 0; i < numPreviousOwners; i++) {
+      for (let i = 0; i < ownershipChain.previousOwners.length; i++) {
         const prevOwner = await generateStorySection({
           type: "previousOwner",
           carDetails,
+          ownershipChain,
           ownerIndex: i,
+          previousOwnerStories: previousOwnerStories.map((s) => s.content),
         });
         previousOwnerStories.push(prevOwner);
         setStoryParts((prev) => [...prev, prevOwner]);
@@ -178,9 +190,8 @@ export function CarStoryGenerator() {
       const currentOwner = await generateStorySection({
         type: "currentOwner",
         carDetails,
-        previousOwnerStories: previousOwnerStories.map(
-          (story) => story.content
-        ),
+        ownershipChain,
+        previousOwnerStories: previousOwnerStories.map((s) => s.content),
       });
       setStoryParts((prev) => [...prev, currentOwner]);
 
@@ -188,6 +199,7 @@ export function CarStoryGenerator() {
       const conclusion = await generateStorySection({
         type: "conclusion",
         carDetails,
+        ownershipChain,
       });
       setStoryParts((prev) => [...prev, conclusion]);
     } catch (err) {

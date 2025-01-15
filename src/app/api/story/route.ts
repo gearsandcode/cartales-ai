@@ -1,3 +1,4 @@
+// src/app/api/story/route.ts
 import { NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { StoryRequest } from "@/types/story-sections";
@@ -24,18 +25,25 @@ export async function POST(req: Request) {
 
     const storyRequest: StoryRequest = await req.json();
 
-    if (!storyRequest.type || !storyRequest.carDetails) {
+    if (
+      !storyRequest.type ||
+      !storyRequest.carDetails ||
+      !storyRequest.ownershipChain
+    ) {
       return NextResponse.json(
-        { error: "Invalid request format" },
+        { error: "Invalid request format - missing required fields" },
         { status: 400 }
       );
     }
 
     let prompt: string;
+    const { ownershipChain, carDetails } = storyRequest;
+
     switch (storyRequest.type) {
       case "introduction":
-        prompt = generateIntroductionPrompt(storyRequest.carDetails);
+        prompt = generateIntroductionPrompt(carDetails);
         break;
+
       case "previousOwner":
         if (typeof storyRequest.ownerIndex !== "number") {
           return NextResponse.json(
@@ -43,20 +51,49 @@ export async function POST(req: Request) {
             { status: 400 }
           );
         }
+
+        const currentPreviousOwner =
+          ownershipChain.previousOwners[storyRequest.ownerIndex];
+        const previousPreviousOwner =
+          storyRequest.ownerIndex > 0
+            ? ownershipChain.previousOwners[storyRequest.ownerIndex - 1]
+            : null;
+        const nextOwner =
+          storyRequest.ownerIndex === ownershipChain.previousOwners.length - 1
+            ? ownershipChain.currentOwner
+            : ownershipChain.previousOwners[storyRequest.ownerIndex + 1];
+
         prompt = generatePreviousOwnerPrompt(
-          storyRequest.carDetails,
-          storyRequest.ownerIndex
+          carDetails,
+          storyRequest.ownerIndex,
+          currentPreviousOwner,
+          previousPreviousOwner,
+          nextOwner
         );
         break;
+
       case "currentOwner":
+        const lastPreviousOwner =
+          ownershipChain.previousOwners.length > 0
+            ? ownershipChain.previousOwners[
+                ownershipChain.previousOwners.length - 1
+              ]
+            : null;
+
         prompt = generateCurrentOwnerPrompt(
-          storyRequest.carDetails,
-          storyRequest.previousOwnerStories || []
+          carDetails,
+          ownershipChain.currentOwner,
+          lastPreviousOwner
         );
         break;
+
       case "conclusion":
-        prompt = generateConclusionPrompt(storyRequest.carDetails);
+        prompt = generateConclusionPrompt(
+          carDetails,
+          ownershipChain.currentOwner
+        );
         break;
+
       default:
         return NextResponse.json(
           { error: "Invalid story section type" },
@@ -69,6 +106,7 @@ export async function POST(req: Request) {
         model: "claude-3-sonnet-20240229",
         max_tokens: 1024,
         messages: [{ role: "user", content: prompt }],
+        temperature: 0.7,
       });
 
       const content = response.content[0];
@@ -81,45 +119,20 @@ export async function POST(req: Request) {
         section: storyRequest.type,
         ownerIndex: storyRequest.ownerIndex,
       });
+
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
-      // Handle specific error cases
+      // Handle API-specific errors
       if (error.status === 400) {
         return NextResponse.json(
-          {
-            error:
-              JSON.stringify(error.error.error.message).replace(/"/g, "") ||
-              "Invalid request",
-          },
+          { error: error.error?.message || "Invalid request to AI service" },
           { status: 400 }
         );
       }
 
-      // Handle specific error cases
-      if (error.status === 401) {
-        return NextResponse.json(
-          { error: "Invalid API key or authentication issue" },
-          { status: 401 }
-        );
-      }
-
-      if (error.status === 402) {
-        return NextResponse.json(
-          { error: "Usage limit exceeded or billing issue" },
-          { status: 402 }
-        );
-      }
-
-      if (error.status === 429) {
-        return NextResponse.json(
-          { error: "Rate limit exceeded" },
-          { status: 429 }
-        );
-      }
-
-      // Generic error fallback
+      // Handle other specific error cases...
       return NextResponse.json(
-        { error: "Failed to generate story", details: error.message },
+        { error: "Failed to generate story section", details: error.message },
         { status: 500 }
       );
     }

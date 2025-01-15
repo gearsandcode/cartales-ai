@@ -1,4 +1,5 @@
 import { CarDetails } from "./car-details";
+import { OwnershipChain } from "./ownership-chain";
 
 export type StorySection =
   | "introduction"
@@ -9,6 +10,13 @@ export type StorySection =
 export interface StoryRequest {
   type: StorySection;
   carDetails: CarDetails;
-  ownerIndex?: number; // For previous owners
-  previousOwnerStories?: string[]; // Pass previous stories for context
+  ownershipChain: OwnershipChain;
+  ownerIndex?: number;
+  previousOwnerStories?: string[];
+}
+
+export interface StoryResponse {
+  content: string;
+  section: StorySection;
+  ownerIndex?: number;
 }
