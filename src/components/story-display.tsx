@@ -20,7 +20,9 @@ export function StoryDisplay({ story }: StoryDisplayProps) {
       story.endsWith(".") || // Ends mid-sentence
       !story.endsWith("\n"); // No final newline
 
-    setTruncatedWarning(possiblyTruncated);
+    if (story) {
+      setTruncatedWarning(possiblyTruncated);
+    }
   }, [story]);
 
   if (!story) return null;
