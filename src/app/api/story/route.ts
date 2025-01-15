@@ -1,14 +1,19 @@
-// src/app/api/story/route.ts
 import { NextResponse } from "next/server";
 import Anthropic from "@anthropic-ai/sdk";
+import { StoryRequest } from "@/types/story-sections";
+import {
+  generateIntroductionPrompt,
+  generatePreviousOwnerPrompt,
+  generateCurrentOwnerPrompt,
+  generateConclusionPrompt,
+} from "@/utils/story-generators";
 
 const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY || "", // Fallback to empty string to catch missing key
+  apiKey: process.env.ANTHROPIC_API_KEY || "",
 });
 
 export async function POST(req: Request) {
   try {
-    // First check if API key exists
     if (!process.env.ANTHROPIC_API_KEY) {
       console.error("Missing Anthropic API key");
       return NextResponse.json(
@@ -17,13 +22,46 @@ export async function POST(req: Request) {
       );
     }
 
-    const { prompt } = await req.json();
+    const storyRequest: StoryRequest = await req.json();
 
-    if (!prompt) {
+    if (!storyRequest.type || !storyRequest.carDetails) {
       return NextResponse.json(
-        { error: "Prompt is required" },
+        { error: "Invalid request format" },
         { status: 400 }
       );
+    }
+
+    let prompt: string;
+    switch (storyRequest.type) {
+      case "introduction":
+        prompt = generateIntroductionPrompt(storyRequest.carDetails);
+        break;
+      case "previousOwner":
+        if (typeof storyRequest.ownerIndex !== "number") {
+          return NextResponse.json(
+            { error: "Owner index required for previous owner stories" },
+            { status: 400 }
+          );
+        }
+        prompt = generatePreviousOwnerPrompt(
+          storyRequest.carDetails,
+          storyRequest.ownerIndex
+        );
+        break;
+      case "currentOwner":
+        prompt = generateCurrentOwnerPrompt(
+          storyRequest.carDetails,
+          storyRequest.previousOwnerStories || []
+        );
+        break;
+      case "conclusion":
+        prompt = generateConclusionPrompt(storyRequest.carDetails);
+        break;
+      default:
+        return NextResponse.json(
+          { error: "Invalid story section type" },
+          { status: 400 }
+        );
     }
 
     try {
@@ -33,15 +71,16 @@ export async function POST(req: Request) {
         messages: [{ role: "user", content: prompt }],
       });
 
-      // Get the first content block
       const content = response.content[0];
-
-      // Check if it's a text block
       if (content.type !== "text") {
         throw new Error("Unexpected response format");
       }
 
-      return NextResponse.json({ content: content.text });
+      return NextResponse.json({
+        content: content.text,
+        section: storyRequest.type,
+        ownerIndex: storyRequest.ownerIndex,
+      });
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (error: any) {
       // Handle specific error cases

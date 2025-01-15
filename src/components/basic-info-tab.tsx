@@ -1,5 +1,5 @@
-// components/BasicInfoTab.tsx
-import { Input } from "@/components/ui/input";
+// components/basic-info-tab.tsx
+import { ValidatedInput } from "@/components/ui/validated-input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { CarDetails } from "../types/car-details";
@@ -15,104 +15,122 @@ export function BasicInfoTab({
   onInputChange,
   onPreviousOwnersChange,
 }: BasicInfoTabProps) {
+  const validations = {
+    year: (value: string) => ({
+      isValid: /^\d{4}$/.test(value),
+      message: "Year must be a 4-digit number",
+    }),
+    make: (value: string) => ({
+      isValid: value.length >= 2,
+      message: "Make must be at least 2 characters",
+    }),
+    model: (value: string) => ({
+      isValid: value.length >= 2,
+      message: "Model must be at least 2 characters",
+    }),
+    ownerName: (value: string) => ({
+      isValid: value.length >= 2,
+      message: "Name must be at least 2 characters",
+    }),
+    purchaseYear: (value: string) => {
+      if (!/^\d{4}$/.test(value))
+        return {
+          isValid: false,
+          message: "Purchase year must be a 4-digit number",
+        };
+      if (carDetails.year && parseInt(value) < parseInt(carDetails.year))
+        return {
+          isValid: false,
+          message: "Purchase year cannot be before car's year",
+        };
+      return { isValid: true, message: "" };
+    },
+    ownershipDuration: (value: string) => ({
+      isValid: value.length >= 1,
+      message: "Please specify ownership duration",
+    }),
+    location: (value: string) => ({
+      isValid: value.length >= 2,
+      message: "Location must be at least 2 characters",
+    }),
+  };
+
   return (
     <div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="space-y-4">
-          <div>
-            <Label htmlFor="year">Year *</Label>
-            <Input
-              id="year"
-              name="year"
-              value={carDetails.year}
-              onChange={onInputChange}
-              placeholder="e.g., 1970"
-            />
-          </div>
-          <div>
-            <Label htmlFor="make">Make *</Label>
-            <Input
-              id="make"
-              name="make"
-              value={carDetails.make}
-              onChange={onInputChange}
-              placeholder="e.g., Chevrolet"
-            />
-          </div>
-          <div>
-            <Label htmlFor="model">Model *</Label>
-            <Input
-              id="model"
-              name="model"
-              value={carDetails.model}
-              onChange={onInputChange}
-              placeholder="e.g., Monte Carlo"
-            />
-          </div>
-          <div>
-            <Label htmlFor="ownerName">Owner Name *</Label>
-            <Input
-              id="ownerName"
-              name="ownerName"
-              value={carDetails.ownerName}
-              onChange={onInputChange}
-              placeholder="e.g., Jesse"
-            />
-          </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="space-y-6">
+          <ValidatedInput
+            label="Year"
+            name="year"
+            value={carDetails.year}
+            onChange={onInputChange}
+            placeholder="e.g., 1970"
+            validate={validations.year}
+          />
+          <ValidatedInput
+            label="Make"
+            name="make"
+            value={carDetails.make}
+            onChange={onInputChange}
+            placeholder="e.g., Chevrolet"
+            validate={validations.make}
+          />
+          <ValidatedInput
+            label="Model"
+            name="model"
+            value={carDetails.model}
+            onChange={onInputChange}
+            placeholder="e.g., Monte Carlo"
+            validate={validations.model}
+          />
+          <ValidatedInput
+            label="Owner Name"
+            name="ownerName"
+            value={carDetails.ownerName}
+            onChange={onInputChange}
+            placeholder="e.g., Jesse"
+            validate={validations.ownerName}
+          />
         </div>
-        <div className="space-y-4">
-          <div>
-            <Label htmlFor="purchaseYear">Purchase year *</Label>
-            <Input
-              id="purchaseYear"
-              name="purchaseYear"
-              value={carDetails.purchaseYear}
-              onChange={onInputChange}
-              placeholder="e.g., 1995"
-            />
-          </div>
-          <div>
-            <Label htmlFor="ownershipDuration">Ownership Duration *</Label>
-            <Input
-              id="ownershipDuration"
-              name="ownershipDuration"
-              value={carDetails.ownershipDuration}
-              onChange={onInputChange}
-              placeholder="e.g., 5 years"
-            />
-          </div>
-          <div>
-            <Label htmlFor="location">Location *</Label>
-            <Input
-              id="location"
-              name="location"
-              value={carDetails.location}
-              onChange={onInputChange}
-              placeholder="e.g., Independence, MO"
-            />
-          </div>
-          <div>
-            <Label htmlFor="acquisitionStory">How did you get the car?</Label>
-            <Input
-              id="acquisitionStory"
-              name="acquisitionStory"
-              value={carDetails.acquisitionStory}
-              onChange={onInputChange}
-              placeholder="Brief story of how you got the car"
-            />
-          </div>
-          <div>
-            <Label htmlFor="departureStory">
-              How did you part with the car?
-            </Label>
-            <Input
-              id="departureStory"
-              name="departureStory"
-              value={carDetails.departureStory}
-              onChange={onInputChange}
-              placeholder="Brief story of how the car left your possession"
-            />
-          </div>
+        <div className="space-y-6">
+          <ValidatedInput
+            label="Purchase Year"
+            name="purchaseYear"
+            value={carDetails.purchaseYear}
+            onChange={onInputChange}
+            placeholder="e.g., 1995"
+            validate={validations.purchaseYear}
+          />
+          <ValidatedInput
+            label="Ownership Duration"
+            name="ownershipDuration"
+            value={carDetails.ownershipDuration}
+            onChange={onInputChange}
+            placeholder="e.g., 5 years"
+            validate={validations.ownershipDuration}
+          />
+          <ValidatedInput
+            label="Location"
+            name="location"
+            value={carDetails.location}
+            onChange={onInputChange}
+            placeholder="e.g., Independence, MO"
+            validate={validations.location}
+          />
+          <ValidatedInput
+            label="How did you get the car?"
+            name="acquisitionStory"
+            value={carDetails.acquisitionStory}
+            onChange={onInputChange}
+            placeholder="Brief story of how you got the car"
+          />
+          <ValidatedInput
+            label="How did you part with the car?"
+            name="departureStory"
+            value={carDetails.departureStory}
+            onChange={onInputChange}
+            placeholder="Brief story of how the car left your possession"
+          />
         </div>
       </div>
 
@@ -121,7 +139,7 @@ export function BasicInfoTab({
         <RadioGroup
           defaultValue="random"
           onValueChange={onPreviousOwnersChange}
-          className="flex space-x-4"
+          className="flex space-x-4 mt-2"
         >
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="random" id="random" />

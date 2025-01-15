@@ -52,7 +52,7 @@ ${
 Required Story Structure:
 1. Introduction (about 80-100 words): Brief history of the car model and its significance
 2. Previous Owners (if any) (about 100 words per owner): Each previous owner's story
-3. Main Story (about 500-600 words): The current owner's experience
+3. Main Story (about 300-400 words): The current owner's experience
 4. Conclusion (about 100-150 words): The departure story and final reflections
 
 Please ensure the story has a proper ending that wraps up all narrative threads.
