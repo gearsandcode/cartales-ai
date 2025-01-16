@@ -7,11 +7,93 @@ import {
   getNearbyLocation,
 } from "./location-generator";
 import { generateOwnerName, estimateOwnerBirthYear } from "./name-generator";
-import {
-  calculateInitialPrice,
-  calculatePriceForYear,
-} from "./price-calculator";
+import { calculateDepreciation } from "./price-calculator";
 import { OwnershipChain, OwnershipPeriod } from "../types/ownership-chain";
+import { calculateModelPrice } from "./price-calculator";
+
+function generatePreviousOwners(
+  initialPrice: number,
+  carDetails: CarDetails,
+  manufacturingYear: number,
+  purchaseYear: number,
+  numPreviousOwners: number
+): OwnershipPeriod[] {
+  const previousOwners: OwnershipPeriod[] = [];
+  let lastEndYear = purchaseYear;
+
+  // Calculate average ownership duration
+  const yearsBetween = purchaseYear - manufacturingYear;
+  const averageOwnership = Math.floor(yearsBetween / (numPreviousOwners || 1));
+
+  for (let i = 0; i < numPreviousOwners; i++) {
+    const isFirstOwner = i === numPreviousOwners - 1;
+    const isLastOwner = i === 0;
+
+    let startYear: number;
+    if (isFirstOwner) {
+      startYear = manufacturingYear;
+    } else if (isLastOwner) {
+      startYear = lastEndYear - averageOwnership;
+    } else {
+      startYear = lastEndYear - averageOwnership;
+    }
+
+    // Calculate purchase price
+    const purchasePrice = calculateDepreciation(
+      initialPrice,
+      carDetails.make,
+      carDetails.model,
+      manufacturingYear,
+      startYear
+    );
+
+    // Calculate sale price
+    const salePrice = calculateDepreciation(
+      initialPrice,
+      carDetails.make,
+      carDetails.model,
+      manufacturingYear,
+      lastEndYear
+    );
+
+    const owner: OwnershipPeriod = {
+      startYear,
+      endYear: lastEndYear,
+      ownerName: generateOwnerName(estimateOwnerBirthYear(startYear)),
+      location:
+        i === 0
+          ? generateRandomLocation()
+          : getNearbyLocation(previousOwners[i - 1].location || ""),
+      purchasePrice,
+      salePrice,
+    };
+
+    previousOwners.unshift(owner);
+    lastEndYear = startYear;
+  }
+
+  return previousOwners;
+}
+
+function linkOwnershipPrices(
+  previousOwners: OwnershipPeriod[],
+  currentOwner: OwnershipPeriod
+): void {
+  // Link previous owners
+  for (let i = 0; i < previousOwners.length - 1; i++) {
+    previousOwners[i].salePrice = previousOwners[i + 1].purchasePrice;
+    previousOwners[i].soldTo = previousOwners[i + 1].ownerName;
+    previousOwners[i + 1].acquiredFrom = previousOwners[i].ownerName;
+  }
+
+  // Link to current owner
+  if (previousOwners.length > 0) {
+    const lastPreviousOwner = previousOwners[previousOwners.length - 1];
+    lastPreviousOwner.soldTo = currentOwner.ownerName;
+    lastPreviousOwner.salePrice = currentOwner.purchasePrice;
+    currentOwner.acquiredFrom = lastPreviousOwner.ownerName;
+  }
+}
 
 export function generateOwnershipChain(
   carDetails: CarDetails
@@ -22,116 +104,58 @@ export function generateOwnershipChain(
   }
 
   try {
-    // Parse years
     const manufacturingYear = parseInt(carDetails.year);
     const purchaseYear = parseInt(carDetails.purchaseYear);
     const durationMatch = carDetails.ownershipDuration.match(/(\d+)/);
     const ownershipDuration = durationMatch ? parseInt(durationMatch[1]) : 0;
     const currentEndYear = purchaseYear + ownershipDuration;
 
-    // Calculate initial price when the car was new
-    const initialPrice = calculateInitialPrice(
+    // Calculate initial price
+    const initialPrice = calculateModelPrice(
       carDetails.make,
       carDetails.model,
       manufacturingYear
     );
 
-    // Create current owner period first
+    // Create current owner period
+    const currentOwnerPrice = calculateDepreciation(
+      initialPrice,
+      carDetails.make,
+      carDetails.model,
+      manufacturingYear,
+      purchaseYear
+    );
+
     const currentOwner: OwnershipPeriod = {
       startYear: purchaseYear,
       endYear: currentEndYear,
       ownerName: carDetails.ownerName,
       location: carDetails.location,
-      purchasePrice: calculatePriceForYear(
-        initialPrice,
-        manufacturingYear,
-        purchaseYear
-      ),
+      purchasePrice: currentOwnerPrice,
     };
 
-    // Calculate number of previous owners
+    // Calculate previous owners
     const yearsBetween = purchaseYear - manufacturingYear;
-    const maxPossibleOwners = Math.floor(yearsBetween / 2); // Minimum 2 years per owner
-
+    const maxPossibleOwners = Math.floor(yearsBetween / 2);
     const numPreviousOwners =
       typeof carDetails.previousOwners === "number"
         ? Math.min(carDetails.previousOwners, maxPossibleOwners)
         : Math.min(3, maxPossibleOwners);
 
-    // Generate previous owners
-    const previousOwners: OwnershipPeriod[] = [];
-    let lastEndYear = purchaseYear;
-
-    // Calculate average ownership duration
-    const yearsToDistribute = yearsBetween;
-    const averageOwnership = Math.floor(
-      yearsToDistribute / (numPreviousOwners || 1)
+    const previousOwners = generatePreviousOwners(
+      initialPrice,
+      carDetails,
+      manufacturingYear,
+      purchaseYear,
+      numPreviousOwners
     );
 
-    for (let i = 0; i < numPreviousOwners; i++) {
-      const isFirstOwner = i === numPreviousOwners - 1;
-      const isLastOwner = i === 0;
+    // Link ownership prices
+    linkOwnershipPrices(previousOwners, currentOwner);
 
-      let startYear: number;
-      if (isFirstOwner) {
-        // First owner starts at manufacturing year
-        startYear = manufacturingYear;
-      } else if (isLastOwner) {
-        // Last previous owner ends at current owner's purchase
-        startYear = lastEndYear - averageOwnership;
-      } else {
-        // Middle owners get roughly average duration
-        startYear = lastEndYear - averageOwnership;
-      }
-
-      // Calculate prices
-      const purchasePrice = calculatePriceForYear(
-        initialPrice,
-        manufacturingYear,
-        startYear
-      );
-      const salePrice = calculatePriceForYear(
-        initialPrice,
-        manufacturingYear,
-        lastEndYear
-      );
-
-      const owner: OwnershipPeriod = {
-        startYear,
-        endYear: lastEndYear,
-        ownerName: generateOwnerName(estimateOwnerBirthYear(startYear)),
-        location:
-          i === 0
-            ? generateRandomLocation()
-            : getNearbyLocation(previousOwners[i - 1].location || ""),
-        purchasePrice,
-        salePrice,
-      };
-
-      previousOwners.unshift(owner);
-      lastEndYear = startYear;
-    }
-
-    // Link owners together with consistent prices
-    for (let i = 0; i < previousOwners.length - 1; i++) {
-      // Ensure sale price of current owner matches purchase price of next owner
-      previousOwners[i].salePrice = previousOwners[i + 1].purchasePrice;
-      previousOwners[i].soldTo = previousOwners[i + 1].ownerName;
-      previousOwners[i + 1].acquiredFrom = previousOwners[i].ownerName;
-    }
-
-    // Link last previous owner to current owner with consistent price
-    if (previousOwners.length > 0) {
-      const lastPreviousOwner = previousOwners[previousOwners.length - 1];
-      lastPreviousOwner.soldTo = carDetails.ownerName;
-      lastPreviousOwner.salePrice = currentOwner.purchasePrice;
-      currentOwner.acquiredFrom = lastPreviousOwner.ownerName;
-    }
-
-    const chain = { currentOwner, previousOwners };
-    return validateOwnershipChain(chain, manufacturingYear) ? chain : null;
+    return { currentOwner, previousOwners };
   } catch (error) {
-    console.error(error);
+    console.error("Error in ownership chain generation:", error);
     return null;
   }
 }

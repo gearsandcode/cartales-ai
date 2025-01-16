@@ -1,11 +1,10 @@
-// types/car-details.ts
 export type CarDetails = {
-  year: string; // Car manufacturing year
+  year: string;
   make: string;
   model: string;
   ownerName: string;
-  purchaseYear: string; // Year current owner bought the car
-  ownershipDuration: string; // How long they've owned it
+  purchaseYear: string;
+  ownershipDuration: string;
   location: string;
   acquisitionStory: string;
   departureStory: string;
