@@ -1,4 +1,3 @@
-// utils/location-generator.ts
 const US_REGIONS = [
   {
     region: "Northeast",
