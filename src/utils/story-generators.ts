@@ -49,14 +49,14 @@ Timeline Context:
 
 Format Requirements:
 1. Use markdown formatting
-2. Craft a catchy heading from the story incorpating the owners first name as a ## heading
+2. Craft a catchy heading from the story incorporating the owner's first name as a ## heading
 3. Write no more than 150 words total
 4. IMPORTANT: Maintain exact consistency with the timeline details provided above
 5. The first paragraph MUST reference exactly how and when they acquired the car using the provided acquisition context
 6. The last paragraph MUST reference exactly how and when they sold the car using the provided sale context
 7. Include specific maintenance records, dates, and costs
 8. Generate a realistic backstory for this owner
-9. Include any modifications and maintainance they realisticly may have made to the car
+9. Include any modifications and maintenance they realistically may have made to the car
 10. Do not use the ¶ symbol or any special paragraph markers
 
 Additional Requirements:

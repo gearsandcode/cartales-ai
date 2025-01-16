@@ -12,7 +12,6 @@ import {
 } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ReloadIcon } from "@radix-ui/react-icons";
 import { CarDetails, initialCarDetails } from "../types/car-details";
 import { BasicInfoTab } from "./basic-info-tab";
 import { DetailsTab } from "./details-tab";
@@ -23,6 +22,7 @@ import {
   generateOwnershipChain,
   validateOwnershipChain,
 } from "@/utils/ownership-generator";
+import { Car } from "lucide-react";
 
 interface FieldValidation {
   isValid: boolean;
@@ -264,16 +264,17 @@ export function CarStoryGenerator() {
         <CardFooter>
           <Button
             onClick={generateCompleteStory}
-            className="w-full"
+            variant="gradient"
+            className="w-full text-lg font-semibold relative flex items-center justify-center"
             disabled={isLoading}
           >
             {isLoading ? (
               <>
-                <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />
+                <Car className="absolute left-0 animate-drive w-full h-full mt-[-6px] opacity-50" />
                 Generating Story...
               </>
             ) : (
-              "Generate Story"
+              "Generate story"
             )}
           </Button>
         </CardFooter>

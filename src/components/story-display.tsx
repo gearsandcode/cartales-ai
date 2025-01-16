@@ -1,6 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import ReactMarkdown from "react-markdown";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface StoryDisplayProps {
   story: string;
@@ -8,6 +9,7 @@ interface StoryDisplayProps {
 
 export function StoryDisplay({ story }: StoryDisplayProps) {
   const contentRef = useRef<HTMLDivElement>(null);
+  const [showScrollToTop, setShowScrollToTop] = useState(false);
 
   useEffect(() => {
     // Auto-scroll when content changes
@@ -21,6 +23,21 @@ export function StoryDisplay({ story }: StoryDisplayProps) {
     }
   }, [story]);
 
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollToTop(window.scrollY > 300);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+    };
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   if (!story) return null;
 
   return (
@@ -29,6 +46,7 @@ export function StoryDisplay({ story }: StoryDisplayProps) {
         <div
           className="prose prose-slate max-w-none prose-headings:mb-4 prose-headings:mt-6 prose-h1:text-3xl prose-h2:text-2xl prose-p:my-4 prose-p:leading-relaxed"
           ref={contentRef}
+          style={{ paddingBottom: "2rem" }} // Add padding at the bottom
         >
           <ReactMarkdown
             components={{
@@ -52,8 +70,16 @@ export function StoryDisplay({ story }: StoryDisplayProps) {
             {story}
           </ReactMarkdown>
         </div>
+        {showScrollToTop && (
+          <Button
+            onClick={scrollToTop}
+            className="sticky bottom-4 right-4"
+            style={{ position: "fixed" }}
+          >
+            Scroll to top
+          </Button>
+        )}
       </CardContent>
     </Card>
-    // </>
   );
 }
