@@ -22,7 +22,7 @@ import {
   generateOwnershipChain,
   validateOwnershipChain,
 } from "@/utils/ownership-generator";
-import { Car } from "lucide-react";
+import { CarProfile } from "@phosphor-icons/react/dist/ssr";
 
 interface FieldValidation {
   isValid: boolean;
@@ -270,7 +270,7 @@ export function CarStoryGenerator() {
           >
             {isLoading ? (
               <>
-                <Car className="absolute left-0 animate-drive w-full h-full mt-[-6px] opacity-50" />
+                <CarProfile className="absolute left-0 animate-drive w-full h-full mt-[-6px] opacity-50" />
                 Generating Story...
               </>
             ) : (

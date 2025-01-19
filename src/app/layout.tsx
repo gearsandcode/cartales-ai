@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { GitHubCorner } from "@/components/github-corner";
-import { Coffee, Heart } from "lucide-react";
+import { Coffee, Heart } from "@phosphor-icons/react/dist/ssr";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -25,32 +25,42 @@ export default function RootLayout({
       <body className={inter.className} suppressHydrationWarning>
         <GitHubCorner />
         <main className="min-h-screen bg-background">{children}</main>
-        <footer className="mb-6 text-center text-sm text-muted-foreground">
-          <div className="flex items-center justify-center space-x-2">
-            <span>Built with</span> <Heart /> <span>+</span> <Coffee />
-            <span>in Seattle, WA by</span>
-            <a
-              href="https://github.com/gearsandcode"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-primary hover:underline"
-            >
-              Jesse Clark (gearsandcode)
-            </a>
-            &nbsp; using Claude API, Next.js, Tailwind, React, and Vercel.
-          </div>
-          <div className="flex items-center justify-center space-x-2">
-            <span>
-              Issues or feature requests? Add them on{" "}
+        <footer className="mb-6 text-center text-sm text-muted-foreground px-4">
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-1 flex-wrap">
+            <div className="flex items-center gap-1">
+              <span>Built with</span>
+              <Heart weight="fill" className="h-4 w-4" />
+              <span>+</span>
+              <Coffee weight="fill" className="h-4 w-4" />
+            </div>
+            <div className="flex items-center gap-1 flex-wrap justify-center">
+              <span>in Seattle, WA by</span>
               <a
-                href="https://github.com/gearsandcode/cartales-ai/issues"
+                href="https://github.com/gearsandcode"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-primary hover:underline"
               >
-                GitHub
+                Jesse Clark (gearsandcode)
               </a>
-            </span>
+            </div>
+            <div>using Claude API, Next.js, Tailwind, React, and Vercel.</div>
+          </div>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-1 flex-wrap">
+            <div className="flex items-center gap-1 text-center sm:text-left">
+              <span>
+                Issues or feature requests? Add them on{" "}
+                <a
+                  href="https://github.com/gearsandcode/cartales-ai/issues"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline inline-flex items-center"
+                >
+                  GitHub
+                </a>
+                .
+              </span>
+            </div>
           </div>
         </footer>
       </body>
