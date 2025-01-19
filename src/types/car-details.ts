@@ -1,4 +1,4 @@
-export type CarDetails = {
+export type BasicCarDetails = {
   year: string;
   make: string;
   model: string;
@@ -9,9 +9,14 @@ export type CarDetails = {
   acquisitionStory: string;
   departureStory: string;
   previousOwners: "random" | number;
+};
+
+export type ExtraCarDetails = {
   customizations: string;
   maintenance: string;
 };
+
+export type CarDetails = BasicCarDetails & ExtraCarDetails;
 
 export function validateCarDetailsForOwnership(details: CarDetails): {
   isValid: boolean;
@@ -122,7 +127,22 @@ export function validateCarDetailsForOwnership(details: CarDetails): {
   return { isValid: true };
 }
 
-export const initialCarDetails: CarDetails = {
+const devInitialCarDetails: CarDetails = {
+  year: "1970",
+  make: "Chevrolet",
+  model: "Monte Carlo",
+  ownerName: "Jesse",
+  purchaseYear: "1995",
+  ownershipDuration: "5 years",
+  location: "Independence, MO",
+  acquisitionStory: "Found it in a barn, couldn't resist the classic lines",
+  departureStory: "Sold it to fund my next project",
+  previousOwners: "random",
+  customizations: "Restored the original V8, added period-correct wheels",
+  maintenance: "Complete engine rebuild in 1996, new transmission in 1998",
+};
+
+const prodInitialCarDetails: CarDetails = {
   year: "",
   make: "",
   model: "",
@@ -136,3 +156,8 @@ export const initialCarDetails: CarDetails = {
   customizations: "",
   maintenance: "",
 };
+
+export const initialCarDetails =
+  process.env.NODE_ENV === "production"
+    ? prodInitialCarDetails
+    : devInitialCarDetails;

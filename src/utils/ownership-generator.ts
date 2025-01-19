@@ -6,7 +6,6 @@ import {
   generateRandomLocation,
   getNearbyLocation,
 } from "./location-generator";
-import { generateOwnerName, estimateOwnerBirthYear } from "./name-generator";
 import { calculateDepreciation } from "./price-calculator";
 import { OwnershipChain, OwnershipPeriod } from "../types/ownership-chain";
 import { calculateModelPrice } from "./price-calculator";
@@ -59,7 +58,7 @@ function generatePreviousOwners(
     const owner: OwnershipPeriod = {
       startYear,
       endYear: lastEndYear,
-      ownerName: generateOwnerName(estimateOwnerBirthYear(startYear)),
+      ownerName: `[OWNER_NAME_${startYear}]`,
       location:
         i === 0
           ? generateRandomLocation()

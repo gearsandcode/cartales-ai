@@ -2,6 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import ReactMarkdown from "react-markdown";
 import { useEffect, useRef, useState } from "react";
+import { ArrowFatUp } from "@phosphor-icons/react/dist/ssr";
 
 interface StoryDisplayProps {
   story: string;
@@ -75,8 +76,9 @@ export function StoryDisplay({ story }: StoryDisplayProps) {
             onClick={scrollToTop}
             className="sticky bottom-4 right-4"
             style={{ position: "fixed" }}
+            aria-label="Scroll to top"
           >
-            Scroll to top
+            <ArrowFatUp weight="fill" />
           </Button>
         )}
       </CardContent>
