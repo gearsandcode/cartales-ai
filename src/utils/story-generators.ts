@@ -1,6 +1,14 @@
 import { CarDetails } from "@/types/car-details";
 import { OwnershipPeriod } from "@/types/ownership-chain";
 
+function resolvePlaceholderName(placeholder: string): string {
+  const yearMatch = placeholder.match(/\[OWNER_NAME_(\d{4})\]/);
+  if (!yearMatch) return placeholder;
+
+  const year = parseInt(yearMatch[1]);
+  return `[Generate a historically appropriate name for someone who owned this car in ${year}. Use common naming conventions from that era.]`;
+}
+
 export function generateIntroductionPrompt(details: CarDetails): string {
   return `You are a storyteller specializing in writing engaging narratives about cars and their histories. Write an introduction about a ${details.year} ${details.make} ${details.model}. Focus on the model's history and significance.
 
@@ -23,25 +31,37 @@ export function generatePreviousOwnerPrompt(
   previousPeriod: OwnershipPeriod | null,
   nextPeriod: OwnershipPeriod
 ): string {
+  const ownerName = ownerPeriod.ownerName.startsWith("[OWNER_NAME_")
+    ? resolvePlaceholderName(ownerPeriod.ownerName)
+    : ownerPeriod.ownerName;
+
+  const previousOwnerName = previousPeriod?.ownerName.startsWith("[OWNER_NAME_")
+    ? resolvePlaceholderName(previousPeriod.ownerName)
+    : previousPeriod?.ownerName;
+
+  const nextOwnerName = nextPeriod.ownerName.startsWith("[OWNER_NAME_")
+    ? resolvePlaceholderName(nextPeriod.ownerName)
+    : nextPeriod.ownerName;
+
   const purchaseContext = previousPeriod
-    ? `acquired from ${previousPeriod.ownerName} in ${
+    ? `acquired from ${previousOwnerName} in ${
         ownerPeriod.startYear
       } for $${previousPeriod.salePrice?.toLocaleString()}`
     : `purchased as a ${
         ownerPeriod.startYear - parseInt(details.year)
       } year old car in ${ownerPeriod.startYear}`;
 
-  const saleContext = `sold to ${nextPeriod.ownerName} in ${
+  const saleContext = `sold to ${nextOwnerName} in ${
     ownerPeriod.endYear
   } for $${ownerPeriod.salePrice?.toLocaleString()}`;
 
-  return `You are a storyteller specializing in writing engaging narratives about cars and their histories. Write a story about ${
-    ownerPeriod.ownerName
-  }'s ownership of a ${details.year} ${details.make} ${details.model}.
+  return `You are a storyteller specializing in writing engaging narratives about cars and their histories. Write a story about ${ownerName}'s ownership of a ${
+    details.year
+  } ${details.make} ${details.model}.
 Timeline Context:
-1. Previous Owner: ${previousPeriod?.ownerName || "Original owner"}
-2. Current Owner: ${ownerPeriod.ownerName}
-3. Next Owner: ${nextPeriod.ownerName}
+1. Previous Owner: ${previousOwnerName || "Original owner"}
+2. Current Owner: ${ownerName}
+3. Next Owner: ${nextOwnerName}
 4. Ownership Period: ${ownerPeriod.startYear} to ${ownerPeriod.endYear}
 5. Location: ${ownerPeriod.location}
 6. Acquisition: ${purchaseContext}
@@ -77,6 +97,10 @@ export function generateCurrentOwnerPrompt(
   currentOwner: OwnershipPeriod,
   previousOwner: OwnershipPeriod | null
 ): string {
+  const previousOwnerName = previousOwner?.ownerName.startsWith("[OWNER_NAME_")
+    ? resolvePlaceholderName(previousOwner.ownerName)
+    : previousOwner?.ownerName;
+
   const customizationsText = details.customizations
     ? `\n\nCustomizations and Modifications: ${details.customizations}`
     : "";
@@ -86,7 +110,7 @@ export function generateCurrentOwnerPrompt(
     : "";
 
   const acquisitionContext = previousOwner
-    ? `acquired from ${previousOwner.ownerName} in ${
+    ? `acquired from ${previousOwnerName} in ${
         currentOwner.startYear
       } for $${previousOwner.salePrice?.toLocaleString()}`
     : `purchased as a ${
@@ -99,7 +123,7 @@ export function generateCurrentOwnerPrompt(
 
 Timeline Context:
 1. Purchase year: ${details.purchaseYear}
-2. Previous Owner: ${previousOwner?.ownerName || "Original owner"}
+2. Previous Owner: ${previousOwnerName || "Original owner"}
 3. Current Owner: ${details.ownerName}
 4. Ownership duration: ${details.ownershipDuration}
 5. Location: ${details.location}

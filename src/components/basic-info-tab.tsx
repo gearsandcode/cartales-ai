@@ -1,11 +1,10 @@
-// components/basic-info-tab.tsx
 import { ValidatedInput } from "@/components/ui/validated-input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { CarDetails } from "../types/car-details";
+import { BasicCarDetails } from "../types/car-details";
 
 interface BasicInfoTabProps {
-  carDetails: CarDetails;
+  carDetails: BasicCarDetails;
   onInputChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onPreviousOwnersChange: (value: string) => void;
 }
@@ -15,6 +14,19 @@ export function BasicInfoTab({
   onInputChange,
   onPreviousOwnersChange,
 }: BasicInfoTabProps) {
+  const initialCarDetails: BasicCarDetails = {
+    year: carDetails.year || "",
+    make: carDetails.make || "",
+    model: carDetails.model || "",
+    ownerName: carDetails.ownerName || "",
+    purchaseYear: carDetails.purchaseYear || "",
+    ownershipDuration: carDetails.ownershipDuration || "",
+    location: carDetails.location || "",
+    acquisitionStory: carDetails.acquisitionStory || "",
+    departureStory: carDetails.departureStory || "",
+    previousOwners: carDetails.previousOwners || "random",
+  };
+
   const validations = {
     year: (value: string) => ({
       isValid: /^\d{4}$/.test(value),
@@ -62,7 +74,7 @@ export function BasicInfoTab({
           <ValidatedInput
             label="Year"
             name="year"
-            value={carDetails.year}
+            value={initialCarDetails.year}
             onChange={onInputChange}
             placeholder="e.g., 1970"
             validate={validations.year}
@@ -70,7 +82,7 @@ export function BasicInfoTab({
           <ValidatedInput
             label="Make"
             name="make"
-            value={carDetails.make}
+            value={initialCarDetails.make}
             onChange={onInputChange}
             placeholder="e.g., Chevrolet"
             validate={validations.make}
@@ -78,7 +90,7 @@ export function BasicInfoTab({
           <ValidatedInput
             label="Model"
             name="model"
-            value={carDetails.model}
+            value={initialCarDetails.model}
             onChange={onInputChange}
             placeholder="e.g., Monte Carlo"
             validate={validations.model}
@@ -86,7 +98,7 @@ export function BasicInfoTab({
           <ValidatedInput
             label="Owner Name"
             name="ownerName"
-            value={carDetails.ownerName}
+            value={initialCarDetails.ownerName}
             onChange={onInputChange}
             placeholder="e.g., Jesse"
             validate={validations.ownerName}
@@ -96,7 +108,7 @@ export function BasicInfoTab({
           <ValidatedInput
             label="Purchase Year"
             name="purchaseYear"
-            value={carDetails.purchaseYear}
+            value={initialCarDetails.purchaseYear}
             onChange={onInputChange}
             placeholder="e.g., 1995"
             validate={validations.purchaseYear}
@@ -104,7 +116,7 @@ export function BasicInfoTab({
           <ValidatedInput
             label="Ownership Duration"
             name="ownershipDuration"
-            value={carDetails.ownershipDuration}
+            value={initialCarDetails.ownershipDuration}
             onChange={onInputChange}
             placeholder="e.g., 5 years"
             validate={validations.ownershipDuration}
@@ -112,7 +124,7 @@ export function BasicInfoTab({
           <ValidatedInput
             label="Location"
             name="location"
-            value={carDetails.location}
+            value={initialCarDetails.location}
             onChange={onInputChange}
             placeholder="e.g., Independence, MO"
             validate={validations.location}
@@ -120,14 +132,14 @@ export function BasicInfoTab({
           <ValidatedInput
             label="How did you get the car?"
             name="acquisitionStory"
-            value={carDetails.acquisitionStory}
+            value={initialCarDetails.acquisitionStory}
             onChange={onInputChange}
             placeholder="Brief story of how you got the car"
           />
           <ValidatedInput
             label="How did you part with the car?"
             name="departureStory"
-            value={carDetails.departureStory}
+            value={initialCarDetails.departureStory}
             onChange={onInputChange}
             placeholder="Brief story of how the car left your possession"
           />
