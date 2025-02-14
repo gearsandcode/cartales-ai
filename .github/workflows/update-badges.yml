@@ -6,10 +6,13 @@ jobs:
   update-badge:
     if: github.event.deployment_status.state == 'success'
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.deployment.ref }}
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -29,11 +32,19 @@ jobs:
 
       - name: Update README badges
         run: |
+          BRANCH_NAME=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}
+          git checkout $BRANCH_NAME
           sed -i "s|](https://vercel.com/gearsandcode/cartales-ai/deployments)|](${{ env.PREVIEW_URL }})|" README.md
 
       - name: Commit and push if changed
         run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
+          BRANCH_NAME=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
           git add README.md
-          git diff --quiet && git diff --staged --quiet || (git commit -m "Update Vercel preview badge URL" && git push)
+          if git diff --staged --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Update Vercel preview badge URL [skip ci]"
+            git push origin $BRANCH_NAME
+          fi
