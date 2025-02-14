@@ -1,3 +1,10 @@
+# CarTales AI
+
+[![Coverage Status](https://coveralls.io/repos/github/gearsandcode/cartales-ai/badge.svg?branch=add-tests)](https://coveralls.io/github/gearsandcode/cartales-ai?branch=add-tests)
+[![Deploy Status](https://img.shields.io/github/deployments/gearsandcode/cartales-ai/Production?logo=vercel&label=vercel)](https://vercel.com)
+
+This project is a web application that uses AI to generate stories based on user input. The user can input a prompt, and the AI will generate a story based on that prompt.
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
