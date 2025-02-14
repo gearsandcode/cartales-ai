@@ -12,13 +12,19 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.head_ref || github.ref_name }}
+          fetch-depth: 0
 
       - name: Update README with Preview URL
         run: |
           echo "Current deployment URL: ${{ github.event.deployment_status.target_url }}"
 
+          # First make sure we're on the right branch
+          branch="${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}"
+          git checkout "$branch"
+
           # Replace the preview URL in README.md
-          sed -i -E "s|(Preview.*?logo=vercel&logoColor=white)\]\(.*?\)|\1](${{ github.event.deployment_status.target_url }})|" README.md
+          cat README.md | grep "Vercel Preview"
+          sed -i 's|\[!\[Vercel Preview\].*\]([^)]*)|[![Vercel Preview](https://img.shields.io/github/deployments/gearsandcode/cartales-ai/Preview?label=vercel%20preview\&logo=vercel\&logoColor=white)](${{ github.event.deployment_status.target_url }})|' README.md
 
           echo "Git status after sed:"
           git status
@@ -26,7 +32,6 @@ jobs:
           echo "Git diff:"
           git diff README.md
 
-          # If there are changes, commit them
           if git diff --exit-code README.md; then
             echo "No changes to commit"
             exit 0
@@ -36,4 +41,4 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git add README.md
           git commit -m "Update preview URL [skip actions]"
-          git push
+          git push origin "$branch"
