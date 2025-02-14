@@ -23,7 +23,13 @@ jobs:
           # Get the branch name from the commit SHA
           COMMIT_SHA="${{ github.event.deployment.ref }}"
           SOURCE_BRANCH=$(git branch -r --contains $COMMIT_SHA | grep -v HEAD | head -n 1 | sed 's/origin\///')
-          echo "Found branch for commit: $SOURCE_BRANCH"
+          echo "Found branch for commit: ${SOURCE_BRANCH}"
+
+          # Verify we have a branch name
+          if [ -z "${SOURCE_BRANCH}" ]; then
+            echo "Error: Could not determine source branch"
+            exit 1
+          fi
 
           # Replace the preview URL in README.md
           cat README.md | grep "Vercel Preview"
@@ -39,4 +45,5 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git add README.md
           git commit -m "Update preview URL [skip actions]"
-          git push origin HEAD:refs/heads/${SOURCE_BRANCH}
+          echo "Pushing to branch: ${SOURCE_BRANCH}"
+          git push origin "HEAD:refs/heads/${SOURCE_BRANCH}"
