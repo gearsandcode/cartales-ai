@@ -4,10 +4,7 @@ on: deployment_status
 
 jobs:
   update-badge:
-    # Only run on successful deployments and skip if the commit was from our action
-    if: |
-      github.event.deployment_status.state == 'success' && 
-      !contains(github.event.deployment.ref, 'Update Vercel preview badge URL')
+    if: github.event.deployment_status.state == 'success'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -18,16 +15,25 @@ jobs:
 
       - name: Update README with Preview URL
         run: |
+          echo "Current deployment URL: ${{ github.event.deployment_status.target_url }}"
+
           # Replace the preview URL in README.md
           sed -i -E "s|(Preview.*?logo=vercel&logoColor=white)\]\(.*?\)|\1](${{ github.event.deployment_status.target_url }})|" README.md
 
+          echo "Git status after sed:"
+          git status
+
+          echo "Git diff:"
+          git diff README.md
+
           # If there are changes, commit them
-          if git diff --quiet; then
+          if git diff --exit-code README.md; then
             echo "No changes to commit"
             exit 0
           fi
 
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git commit -am "Update preview URL [skip actions]"
-          git push origin HEAD:${{ github.head_ref || github.ref_name }}
+          git add README.md
+          git commit -m "Update preview URL [skip actions]"
+          git push
