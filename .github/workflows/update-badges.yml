@@ -4,7 +4,10 @@ on: deployment_status
 
 jobs:
   update-badge:
-    if: github.event.deployment_status.state == 'success'
+    # Only run on successful deployments and skip if the commit was from our action
+    if: |
+      github.event.deployment_status.state == 'success' && 
+      !contains(github.event.deployment.ref, 'Update Vercel preview badge URL')
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -66,7 +69,7 @@ jobs:
                       owner: context.repo.owner,
                       repo: context.repo.repo,
                       path: 'README.md',
-                      message: 'Update Vercel preview badge URL [skip ci]',
+                      message: 'Update Vercel preview badge URL [skip ci] [skip actions]',
                       content: Buffer.from(newContent).toString('base64'),
                       sha: file.sha,
                       branch: branch
