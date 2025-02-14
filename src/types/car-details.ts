@@ -8,7 +8,7 @@ export type BasicCarDetails = {
   location: string;
   acquisitionStory: string;
   departureStory: string;
-  previousOwners: "random" | number;
+  previousOwners: string | number;
 };
 
 export type ExtraCarDetails = {
@@ -24,13 +24,13 @@ export function validateCarDetailsForOwnership(details: CarDetails): {
 } {
   // Check if required fields exist
   const requiredFields = [
-    "year",
-    "make",
-    "model",
-    "ownerName",
-    "purchaseYear",
-    "ownershipDuration",
-    "location",
+    'year',
+    'make',
+    'model',
+    'ownerName',
+    'purchaseYear',
+    'ownershipDuration',
+    'location',
   ];
   for (const field of requiredFields) {
     if (!details[field as keyof CarDetails]) {
@@ -128,36 +128,36 @@ export function validateCarDetailsForOwnership(details: CarDetails): {
 }
 
 const devInitialCarDetails: CarDetails = {
-  year: "1970",
-  make: "Chevrolet",
-  model: "Monte Carlo",
-  ownerName: "Jesse",
-  purchaseYear: "1995",
-  ownershipDuration: "5 years",
-  location: "Independence, MO",
+  year: '1970',
+  make: 'Chevrolet',
+  model: 'Monte Carlo',
+  ownerName: 'Jesse',
+  purchaseYear: '1995',
+  ownershipDuration: '5 years',
+  location: 'Independence, MO',
   acquisitionStory: "Found it in a barn, couldn't resist the classic lines",
-  departureStory: "Sold it to fund my next project",
-  previousOwners: "random",
-  customizations: "Restored the original V8, added period-correct wheels",
-  maintenance: "Complete engine rebuild in 1996, new transmission in 1998",
+  departureStory: 'Sold it to fund my next project',
+  previousOwners: 'random',
+  customizations: 'Restored the original V8, added period-correct wheels',
+  maintenance: 'Complete engine rebuild in 1996, new transmission in 1998',
 };
 
 const prodInitialCarDetails: CarDetails = {
-  year: "",
-  make: "",
-  model: "",
-  ownerName: "",
-  purchaseYear: "",
-  ownershipDuration: "",
-  location: "",
-  acquisitionStory: "",
-  departureStory: "",
-  previousOwners: "random",
-  customizations: "",
-  maintenance: "",
+  year: '',
+  make: '',
+  model: '',
+  ownerName: '',
+  purchaseYear: '',
+  ownershipDuration: '',
+  location: '',
+  acquisitionStory: '',
+  departureStory: '',
+  previousOwners: 'random',
+  customizations: '',
+  maintenance: '',
 };
 
 export const initialCarDetails =
-  process.env.NODE_ENV === "production"
+  process.env.NODE_ENV === 'production'
     ? prodInitialCarDetails
     : devInitialCarDetails;

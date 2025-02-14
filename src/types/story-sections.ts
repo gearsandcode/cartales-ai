@@ -1,11 +1,11 @@
-import { CarDetails } from "./car-details";
-import { OwnershipChain } from "./ownership-chain";
+import { CarDetails } from './car-details';
+import { OwnershipChain } from './ownership-chain';
 
 export type StorySection =
-  | "introduction"
-  | "previousOwner"
-  | "currentOwner"
-  | "conclusion";
+  | 'introduction'
+  | 'previousOwner'
+  | 'currentOwner'
+  | 'conclusion';
 
 export interface StoryRequest {
   type: StorySection;

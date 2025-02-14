@@ -1,4 +1,4 @@
-import { BrandTier } from "../types/pricing";
+import { BrandTier } from '../types/pricing';
 
 interface DecadeBasePrice {
   standard: number;
@@ -11,10 +11,10 @@ const DECADE_BASE_PRICES: Record<number, DecadeBasePrice> = {
     standard: 2000,
     ratios: {
       exotic: 6.0, // 12,000 base (1955 Ferrari 250 GT)
-      "ultra-luxury": 5.0,
-      "top-tier": 3.0,
-      "mid-luxury": 2.0,
-      "semi-luxury": 1.5,
+      'ultra-luxury': 5.0,
+      'top-tier': 3.0,
+      'mid-luxury': 2.0,
+      'semi-luxury': 1.5,
       standard: 1.0,
       economy: 0.8,
     },
@@ -23,10 +23,10 @@ const DECADE_BASE_PRICES: Record<number, DecadeBasePrice> = {
     standard: 2500,
     ratios: {
       exotic: 5.6, // ~14,000 base (1964 Lambo 350 GT)
-      "ultra-luxury": 4.8,
-      "top-tier": 2.8,
-      "mid-luxury": 1.8,
-      "semi-luxury": 1.4,
+      'ultra-luxury': 4.8,
+      'top-tier': 2.8,
+      'mid-luxury': 1.8,
+      'semi-luxury': 1.4,
       standard: 1.0,
       economy: 0.8,
     },
@@ -35,10 +35,10 @@ const DECADE_BASE_PRICES: Record<number, DecadeBasePrice> = {
     standard: 3100, // Based on 1970 Monte Carlo
     ratios: {
       exotic: 16.77, // ~52,000 base (1974 Countach)
-      "ultra-luxury": 8.0,
-      "top-tier": 3.0,
-      "mid-luxury": 1.8,
-      "semi-luxury": 1.3,
+      'ultra-luxury': 8.0,
+      'top-tier': 3.0,
+      'mid-luxury': 1.8,
+      'semi-luxury': 1.3,
       standard: 1.0,
       economy: 0.85,
     },
@@ -47,10 +47,10 @@ const DECADE_BASE_PRICES: Record<number, DecadeBasePrice> = {
     standard: 7000,
     ratios: {
       exotic: 14.21, // ~99,500 base (1982 Countach LP500S)
-      "ultra-luxury": 7.0,
-      "top-tier": 2.8,
-      "mid-luxury": 1.7,
-      "semi-luxury": 1.3,
+      'ultra-luxury': 7.0,
+      'top-tier': 2.8,
+      'mid-luxury': 1.7,
+      'semi-luxury': 1.3,
       standard: 1.0,
       economy: 0.85,
     },
@@ -59,10 +59,10 @@ const DECADE_BASE_PRICES: Record<number, DecadeBasePrice> = {
     standard: 15000,
     ratios: {
       exotic: 14.07, // ~211,000 base (1990 Diablo)
-      "ultra-luxury": 6.5,
-      "top-tier": 2.6,
-      "mid-luxury": 1.6,
-      "semi-luxury": 1.25,
+      'ultra-luxury': 6.5,
+      'top-tier': 2.6,
+      'mid-luxury': 1.6,
+      'semi-luxury': 1.25,
       standard: 1.0,
       economy: 0.9,
     },
@@ -71,10 +71,10 @@ const DECADE_BASE_PRICES: Record<number, DecadeBasePrice> = {
     standard: 20000,
     ratios: {
       exotic: 70.0, // 1,400,000 base (2006 Veyron)
-      "ultra-luxury": 15.0,
-      "top-tier": 3.0,
-      "mid-luxury": 1.8,
-      "semi-luxury": 1.3,
+      'ultra-luxury': 15.0,
+      'top-tier': 3.0,
+      'mid-luxury': 1.8,
+      'semi-luxury': 1.3,
       standard: 1.0,
       economy: 0.9,
     },
@@ -83,10 +83,10 @@ const DECADE_BASE_PRICES: Record<number, DecadeBasePrice> = {
     standard: 25000,
     ratios: {
       exotic: 144.0, // ~3,600,000 base (Chiron)
-      "ultra-luxury": 16.0,
-      "top-tier": 3.2,
-      "mid-luxury": 1.9,
-      "semi-luxury": 1.35,
+      'ultra-luxury': 16.0,
+      'top-tier': 3.2,
+      'mid-luxury': 1.9,
+      'semi-luxury': 1.35,
       standard: 1.0,
       economy: 0.9,
     },
@@ -95,10 +95,10 @@ const DECADE_BASE_PRICES: Record<number, DecadeBasePrice> = {
     standard: 30000,
     ratios: {
       exotic: 150.0, // Modern hypercars
-      "ultra-luxury": 18.0,
-      "top-tier": 3.5,
-      "mid-luxury": 2.0,
-      "semi-luxury": 1.4,
+      'ultra-luxury': 18.0,
+      'top-tier': 3.5,
+      'mid-luxury': 2.0,
+      'semi-luxury': 1.4,
       standard: 1.0,
       economy: 0.9,
     },

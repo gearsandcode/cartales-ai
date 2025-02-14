@@ -1,6 +1,6 @@
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { ExtraCarDetails } from "../types/car-details";
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { ExtraCarDetails } from '../types/car-details';
 
 interface DetailsTabProps {
   carDetails: ExtraCarDetails;
@@ -9,8 +9,8 @@ interface DetailsTabProps {
 
 export function DetailsTab({ carDetails, onInputChange }: DetailsTabProps) {
   const initialCarDetails: ExtraCarDetails = {
-    customizations: carDetails.customizations || "",
-    maintenance: carDetails.maintenance || "",
+    customizations: carDetails.customizations || '',
+    maintenance: carDetails.maintenance || '',
   };
   return (
     <div className="space-y-4">

@@ -1,13 +1,13 @@
-import { CarStoryGenerator } from "@/components/car-story-generator";
-import { carQuotes } from "@/data/car-quotes";
-import { headers } from "next/headers";
+import { CarStoryGenerator } from '@/components/car-story-generator';
+import { carQuotes } from '@/data/car-quotes';
+import { headers } from 'next/headers';
 
 // Generate the quote using request timestamp
 export default async function Home() {
   // Get headers
   const headersList = headers();
   const timestamp =
-    (await headersList).get("x-request-timestamp") || Date.now().toString();
+    (await headersList).get('x-request-timestamp') || Date.now().toString();
   const quoteIndex = Number(timestamp) % carQuotes.length;
   const quote = carQuotes[quoteIndex];
 

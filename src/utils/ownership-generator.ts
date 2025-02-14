@@ -1,14 +1,14 @@
 import {
   CarDetails,
   validateCarDetailsForOwnership,
-} from "../types/car-details";
+} from '../types/car-details';
 import {
   generateRandomLocation,
   getNearbyLocation,
-} from "./location-generator";
-import { calculateDepreciation } from "./price-calculator";
-import { OwnershipChain, OwnershipPeriod } from "../types/ownership-chain";
-import { calculateModelPrice } from "./price-calculator";
+} from './location-generator';
+import { calculateDepreciation } from './price-calculator';
+import { OwnershipChain, OwnershipPeriod } from '../types/ownership-chain';
+import { calculateModelPrice } from './price-calculator';
 
 function generatePreviousOwners(
   initialPrice: number,
@@ -62,7 +62,7 @@ function generatePreviousOwners(
       location:
         i === 0
           ? generateRandomLocation()
-          : getNearbyLocation(previousOwners[i - 1].location || ""),
+          : getNearbyLocation(previousOwners[i - 1].location || ''),
       purchasePrice,
       salePrice,
     };
@@ -137,7 +137,7 @@ export function generateOwnershipChain(
     const yearsBetween = purchaseYear - manufacturingYear;
     const maxPossibleOwners = Math.floor(yearsBetween / 2);
     const numPreviousOwners =
-      typeof carDetails.previousOwners === "number"
+      typeof carDetails.previousOwners === 'number'
         ? Math.min(carDetails.previousOwners, maxPossibleOwners)
         : Math.min(3, maxPossibleOwners);
 
@@ -154,7 +154,7 @@ export function generateOwnershipChain(
 
     return { currentOwner, previousOwners };
   } catch (error) {
-    console.error("Error in ownership chain generation:", error);
+    console.error('Error in ownership chain generation:', error);
     return null;
   }
 }

@@ -1,4 +1,4 @@
-import { StorySection } from "./story-sections";
+import { StorySection } from './story-sections';
 
 export interface StoryResponse {
   content: string;

@@ -1,13 +1,13 @@
-import { ModelPricing } from "../types/pricing-types";
+import { ModelPricing } from '../types/pricing-types';
 
 export const JaguarPricing: Record<string, ModelPricing> = {
   XJ220: {
-    baseModel: "XJ220",
-    aliases: ["XJ220"],
+    baseModel: 'XJ220',
+    aliases: ['XJ220'],
     defaultMultiplier: 41.67,
     generations: [
       {
-        generation: "Original",
+        generation: 'Original',
         startYear: 1992,
         endYear: 1994,
         basePrice: 500000,
@@ -15,13 +15,13 @@ export const JaguarPricing: Record<string, ModelPricing> = {
       },
     ],
   },
-  "F-Type": {
-    baseModel: "F-Type",
-    aliases: ["F-Type", "F-Type R"],
+  'F-Type': {
+    baseModel: 'F-Type',
+    aliases: ['F-Type', 'F-Type R'],
     defaultMultiplier: 7.5,
     generations: [
       {
-        generation: "First Gen",
+        generation: 'First Gen',
         startYear: 2013,
         endYear: 2024,
         basePrice: 90000,

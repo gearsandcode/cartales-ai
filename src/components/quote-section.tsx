@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { getRandomQuote } from "@/data/car-quotes";
-import { useState, useEffect } from "react";
+import { getRandomQuote } from '@/data/car-quotes';
+import { useState, useEffect } from 'react';
 
 export function QuoteSection() {
-  const [quote, setQuote] = useState("");
+  const [quote, setQuote] = useState('');
 
   useEffect(() => {
     setQuote(getRandomQuote());
@@ -16,7 +16,7 @@ export function QuoteSection() {
         Car Tales AI
       </h1>
       <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-        {quote || "Loading a quote..."}
+        {quote || 'Loading a quote...'}
       </p>
     </div>
   );
