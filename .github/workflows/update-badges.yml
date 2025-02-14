@@ -29,9 +29,11 @@ jobs:
             const readmePath = path.join(process.env.GITHUB_WORKSPACE, 'README.md');
             let content = fs.readFileSync(readmePath, 'utf8');
 
+            // Match the Vercel Preview badge by its alt text and capture everything up to the closing parenthesis
+            const badgeRegex = /\[!\[Vercel Preview\].*?\]\(.*?\)/;
             const newContent = content.replace(
-              /\]\(https:\/\/vercel\.com\/gearsandcode\/cartales-ai\/deployments\)/,
-              `](${process.env.PREVIEW_URL})`
+              badgeRegex,
+              `[![Vercel Preview](https://img.shields.io/github/deployments/gearsandcode/cartales-ai/Preview?label=vercel%20preview&logo=vercel&logoColor=white)](${process.env.PREVIEW_URL})`
             );
 
             if (content !== newContent) {
