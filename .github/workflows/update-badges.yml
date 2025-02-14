@@ -14,13 +14,16 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.deployment.ref }}
+          fetch-depth: 0
 
       - name: Update README with Preview URL
         run: |
           echo "Current deployment URL: ${{ github.event.deployment_status.target_url }}"
 
-          # Get source branch name from the deployment ref
-          SOURCE_BRANCH="${{ github.event.deployment.ref }}"
+          # Get the branch name from the commit SHA
+          COMMIT_SHA="${{ github.event.deployment.ref }}"
+          SOURCE_BRANCH=$(git branch -r --contains $COMMIT_SHA | grep -v HEAD | head -n 1 | sed 's/origin\///')
+          echo "Found branch for commit: $SOURCE_BRANCH"
 
           # Replace the preview URL in README.md
           cat README.md | grep "Vercel Preview"
@@ -36,4 +39,4 @@ jobs:
           git config --local user.name "github-actions[bot]"
           git add README.md
           git commit -m "Update preview URL [skip actions]"
-          git push origin HEAD:${SOURCE_BRANCH}
+          git push origin HEAD:refs/heads/${SOURCE_BRANCH}
