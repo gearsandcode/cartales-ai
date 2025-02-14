@@ -4,6 +4,7 @@ on: deployment_status
 
 jobs:
   update-badge:
+    # Only run on successful deployments and skip if the commit was from our action
     if: |
       github.event.deployment_status.state == 'success' && 
       !contains(github.event.deployment.ref, 'Update Vercel preview badge URL')
@@ -14,36 +15,72 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.deployment.ref }}
-          fetch-depth: 0
 
-      - name: Update README with Preview URL
+      - name: Get Vercel Preview URL
+        id: get-preview-url
         run: |
-          echo "Current deployment URL: ${{ github.event.deployment_status.target_url }}"
+          PREVIEW_URL="${{ github.event.deployment_status.target_url }}"
+          echo "preview_url=$PREVIEW_URL" >> $GITHUB_OUTPUT
 
-          # Get the branch name from the commit SHA
-          COMMIT_SHA="${{ github.event.deployment.ref }}"
-          SOURCE_BRANCH=$(git branch -r --contains $COMMIT_SHA | grep -v HEAD | head -n 1 | sed 's/origin\///')
-          echo "Found branch for commit: ${SOURCE_BRANCH}"
+      - name: Update README with new URL
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
 
-          # Verify we have a branch name
-          if [ -z "${SOURCE_BRANCH}" ]; then
-            echo "Error: Could not determine source branch"
-            exit 1
-          fi
+            const readmePath = path.join(process.env.GITHUB_WORKSPACE, 'README.md');
+            let content = fs.readFileSync(readmePath, 'utf8');
 
-          # Replace the preview URL in README.md
-          cat README.md | grep "Vercel Preview"
-          sed -i 's|\[!\[Vercel Preview\].*\]([^)]*)|[![Vercel Preview](https://img.shields.io/github/deployments/gearsandcode/cartales-ai/Preview?label=vercel%20preview\&logo=vercel\&logoColor=white)](${{ github.event.deployment_status.target_url }})|' README.md
+            // Match the Vercel Preview badge by its alt text and capture everything up to the closing parenthesis
+            const badgeRegex = /\[!\[Vercel Preview\].*?\]\(.*?\)/;
+            const newContent = content.replace(
+              badgeRegex,
+              `[![Vercel Preview](https://img.shields.io/github/deployments/gearsandcode/cartales-ai/Preview?label=vercel%20preview&logo=vercel&logoColor=white)](${process.env.PREVIEW_URL})`
+            );
 
-          # If there are changes, commit them
-          if git diff --quiet README.md; then
-            echo "No changes to commit"
-            exit 0
-          fi
-
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git add README.md
-          git commit -m "Update preview URL [skip actions]"
-          echo "Pushing to branch: ${SOURCE_BRANCH}"
-          git push origin "HEAD:refs/heads/${SOURCE_BRANCH}"
+            if (content !== newContent) {
+              try {
+                const { data: refs } = await github.rest.git.listMatchingRefs({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  ref: 'heads/'
+                });
+                
+                const sha = context.payload.deployment.sha;
+                for (const ref of refs) {
+                  const { data: commit } = await github.rest.git.getCommit({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    commit_sha: ref.object.sha
+                  });
+                  
+                  if (commit.sha === sha) {
+                    const branch = ref.ref.replace('refs/heads/', '');
+                    
+                    const { data: file } = await github.rest.repos.getContent({
+                      owner: context.repo.owner,
+                      repo: context.repo.repo,
+                      path: 'README.md',
+                      ref: branch
+                    });
+                    
+                    await github.rest.repos.createOrUpdateFileContents({
+                      owner: context.repo.owner,
+                      repo: context.repo.repo,
+                      path: 'README.md',
+                      message: 'Update Vercel preview badge URL [skip ci] [skip actions]',
+                      content: Buffer.from(newContent).toString('base64'),
+                      sha: file.sha,
+                      branch: branch
+                    });
+                    break;
+                  }
+                }
+              } catch (error) {
+                console.error('Error updating file:', error);
+                process.exit(1);
+              }
+            }
+        env:
+          PREVIEW_URL: ${{ steps.get-preview-url.outputs.preview_url }}
