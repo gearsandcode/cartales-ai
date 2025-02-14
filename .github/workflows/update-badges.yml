@@ -4,14 +4,16 @@ on: deployment_status
 
 jobs:
   update-badge:
-    if: github.event.deployment_status.state == 'success'
+    if: |
+      github.event.deployment_status.state == 'success' && 
+      !contains(github.event.deployment.ref, 'Update Vercel preview badge URL')
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: ${{ github.head_ref || github.ref_name }}
+          ref: ${{ github.event.deployment.ref }}
           fetch-depth: 0
 
       - name: Update README with Preview URL
@@ -20,6 +22,9 @@ jobs:
 
           # First make sure we're on the right branch
           branch="${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}"
+          if [ -z "$branch" ]; then
+            branch="${{ github.event.deployment.ref }}"
+          fi
           git checkout "$branch"
 
           # Replace the preview URL in README.md
