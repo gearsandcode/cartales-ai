@@ -2,7 +2,7 @@
 
 [![Coverage Status](https://coveralls.io/repos/github/gearsandcode/cartales-ai/badge.svg?branch=add-tests)](https://coveralls.io/github/gearsandcode/cartales-ai?branch=add-tests)
 [![Vercel Production](https://img.shields.io/github/deployments/gearsandcode/cartales-ai/Production?label=vercel&logo=vercel&logoColor=white)](https://cartales-ai.vercel.app)
-[![Vercel Preview](https://img.shields.io/github/deployments/gearsandcode/cartales-ai/Preview?label=vercel%20preview&logo=vercel&logoColor=white)](https://cartales-gut18kswu-sprocket-co.vercel.app)
+[![Vercel Preview](https://img.shields.io/github/deployments/gearsandcode/cartales-ai/Preview?label=vercel%20preview&logo=vercel&logoColor=white)](https://cartales-6u0jr77b0-sprocket-co.vercel.app)
 
 This project is a web application that uses AI to generate stories based on user input. The user can input a prompt, and the AI will generate a story based on that prompt.
 
