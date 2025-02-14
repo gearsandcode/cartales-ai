@@ -7,7 +7,7 @@ jobs:
     # Only run on successful deployments and skip if the commit was from our action
     if: |
       github.event.deployment_status.state == 'success' && 
-      !contains(github.event.deployment.ref, 'Update Vercel preview badge URL')
+      !contains(github.event.deployment.ref, 'Update Vercel preview badge URL [skip ci] [skip actions]')
     runs-on: ubuntu-latest
     permissions:
       contents: write
