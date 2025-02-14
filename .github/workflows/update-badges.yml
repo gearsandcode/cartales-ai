@@ -1,0 +1,39 @@
+name: Update Vercel Badge
+
+on: deployment_status
+
+jobs:
+  update-badge:
+    if: github.event.deployment_status.state == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.deployment.ref }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Vercel CLI
+        run: npm i -g vercel
+
+      - name: Get Vercel Preview URL
+        id: get-preview-url
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          URL=$(npx vercel ls --token=$VERCEL_TOKEN --scope=gearsandcode --environment=preview --limit=1 --json | jq -r '.[0].url')
+          echo "PREVIEW_URL=https://$URL" >> $GITHUB_ENV
+
+      - name: Update README badges
+        run: |
+          sed -i "s|](https://vercel.com/gearsandcode/cartales-ai/deployments)|](${{ env.PREVIEW_URL }})|" README.md
+
+      - name: Commit and push if changed
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add README.md
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Update Vercel preview badge URL" && git push)
