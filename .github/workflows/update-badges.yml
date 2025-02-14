@@ -47,31 +47,50 @@ jobs:
             );
 
             if (content !== newContent) {
-              // Get the current branch name
-              const ref = context.payload.deployment.ref;
-              const branch = ref.replace('refs/heads/', '');
-              
               try {
-                // Get the current file's SHA
-                const { data: file } = await github.rest.repos.getContent({
+                // Get the current commit's branch
+                const { data: refs } = await github.rest.git.listMatchingRefs({
                   owner: context.repo.owner,
                   repo: context.repo.repo,
-                  path: 'README.md',
-                  ref: branch
+                  ref: 'heads/'
                 });
                 
-                // Update the file
-                await github.rest.repos.createOrUpdateFileContents({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  path: 'README.md',
-                  message: 'Update Vercel preview badge URL [skip ci]',
-                  content: Buffer.from(newContent).toString('base64'),
-                  sha: file.sha,
-                  branch: branch
-                });
-                
-                console.log('Successfully updated README.md');
+                // Find the branch that contains our commit
+                const sha = context.payload.deployment.sha;
+                for (const ref of refs) {
+                  const { data: commit } = await github.rest.git.getCommit({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    commit_sha: ref.object.sha
+                  });
+                  
+                  if (commit.sha === sha) {
+                    const branch = ref.ref.replace('refs/heads/', '');
+                    console.log(`Found branch: ${branch} for commit ${sha}`);
+                    
+                    // Get the current file's SHA
+                    const { data: file } = await github.rest.repos.getContent({
+                      owner: context.repo.owner,
+                      repo: context.repo.repo,
+                      path: 'README.md',
+                      ref: branch
+                    });
+                    
+                    // Update the file
+                    await github.rest.repos.createOrUpdateFileContents({
+                      owner: context.repo.owner,
+                      repo: context.repo.repo,
+                      path: 'README.md',
+                      message: 'Update Vercel preview badge URL [skip ci]',
+                      content: Buffer.from(newContent).toString('base64'),
+                      sha: file.sha,
+                      branch: branch
+                    });
+                    
+                    console.log('Successfully updated README.md');
+                    break;
+                  }
+                }
               } catch (error) {
                 console.error('Error updating file:', error);
                 process.exit(1);
