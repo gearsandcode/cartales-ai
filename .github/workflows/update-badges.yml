@@ -9,10 +9,12 @@ jobs:
     permissions:
       contents: write
     steps:
-      - name: Early exit if badge update commit
+      - name: Get branch and check commit
+        id: get-branch
         uses: actions/github-script@v7
         with:
           script: |
+            // Check if this was a badge update commit
             const { data: commit } = await github.rest.repos.getCommit({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -24,14 +26,33 @@ jobs:
               return;
             }
 
+            // Get the branch for this commit
+            const { data: refs } = await github.rest.git.listMatchingRefs({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: 'heads/'
+            });
+
+            const branch = refs.find(ref => ref.object.sha === context.payload.deployment.sha);
+            if (!branch) {
+              core.setFailed('No branch found for this commit');
+              return;
+            }
+
+            const branchName = branch.ref.replace('refs/heads/', '');
+            core.setOutput('branch', branchName);
+
       - uses: actions/checkout@v4
+        if: steps.get-branch.outputs.branch != ''
         with:
-          ref: ${{ github.event.deployment.ref }}
+          ref: ${{ steps.get-branch.outputs.branch }}
 
       - name: Update Badge
+        if: steps.get-branch.outputs.branch != ''
         uses: actions/github-script@v7
         env:
           NEW_URL: ${{ github.event.deployment_status.target_url }}
+          BRANCH: ${{ steps.get-branch.outputs.branch }}
         with:
           script: |
             const fs = require('fs');
@@ -56,7 +77,7 @@ jobs:
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 path: 'README.md',
-                ref: context.ref
+                ref: process.env.BRANCH
               });
               
               await github.rest.repos.createOrUpdateFileContents({
@@ -66,7 +87,7 @@ jobs:
                 message: 'Update preview URL [skip ci]',
                 content: Buffer.from(newContent).toString('base64'),
                 sha: file.sha,
-                branch: context.ref,
+                branch: process.env.BRANCH,
                 committer: {
                   name: 'github-actions[bot]',
                   email: '41898282+github-actions[bot]@users.noreply.github.com'
