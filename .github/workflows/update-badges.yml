@@ -1,106 +1,83 @@
 name: Update Vercel Badge
 
-on:
-  deployment_status:
+on: deployment_status
 
 jobs:
-  debug-event:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Debug Event
-        env:
-          EVENT_CONTEXT: ${{ toJSON(github.event) }}
-        run: |
-          echo "Deployment Status Event Context:"
-          echo "$EVENT_CONTEXT"
-          echo "Deployment Ref: ${{ github.event.deployment.ref }}"
-          echo "Deployment SHA: ${{ github.event.deployment.sha }}"
-          echo "Deployment Status: ${{ github.event.deployment_status.state }}"
-          echo "Deployment Environment: ${{ github.event.deployment.environment }}"
-          echo "Actor: ${{ github.actor }}"
-
   update-badge:
-    needs: debug-event
-    if: |
-      github.event.deployment_status.state == 'success' && 
-      !contains(github.event.deployment.ref, '[skip') && 
-      !contains(github.event.deployment.ref, 'badge') && 
-      github.actor != 'github-actions[bot]' && 
-      !contains(github.event.deployment.description, 'badge') &&
-      github.event.deployment.environment == 'Preview'
+    if: github.event.deployment_status.state == 'success'
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - name: Check Skip Conditions
-        run: |
-          echo "Checking skip conditions..."
-          echo "Ref contains [skip]: ${{ contains(github.event.deployment.ref, '[skip') }}"
-          echo "Ref contains badge: ${{ contains(github.event.deployment.ref, 'badge') }}"
-          echo "Actor is bot: ${{ github.actor == 'github-actions[bot]' }}"
-          echo "Description contains badge: ${{ contains(github.event.deployment.description, 'badge') }}"
-          echo "Environment is Preview: ${{ github.event.deployment.environment == 'Preview' }}"
-
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.event.deployment.ref }}
 
-      - name: Get Vercel Preview URL
-        id: get-preview-url
-        run: |
-          PREVIEW_URL="${{ github.event.deployment_status.target_url }}"
-          echo "preview_url=$PREVIEW_URL" >> $GITHUB_OUTPUT
-
-      - name: Update README with new URL
+      - name: Check if URL changed
+        id: check-url
         uses: actions/github-script@v7
+        env:
+          NEW_URL: ${{ github.event.deployment_status.target_url }}
         with:
           script: |
             const fs = require('fs');
-            const path = require('path');
 
-            const readmePath = path.join(process.env.GITHUB_WORKSPACE, 'README.md');
-            let content = fs.readFileSync(readmePath, 'utf8');
+            // Read the README
+            const content = fs.readFileSync('README.md', 'utf8');
 
-            const badgeRegex = /\[!\[Vercel Preview\].*?\]\(.*?\)/;
-            const newBadge = `[![Vercel Preview](https://img.shields.io/github/deployments/gearsandcode/cartales-ai/Preview?label=vercel%20preview&logo=vercel&logoColor=white)](${process.env.PREVIEW_URL})`;
+            // Extract current URL from badge
+            const urlMatch = content.match(/\[!\[Vercel Preview\].*?\]\((.*?)\)/);
+            const currentUrl = urlMatch ? urlMatch[1] : '';
+            const newUrl = process.env.NEW_URL;
 
-            // Check if content actually needs updating
-            const currentBadge = content.match(badgeRegex)?.[0];
-            if (!currentBadge || currentBadge !== newBadge) {
-              console.log('Current badge:', currentBadge);
-              console.log('New badge:', newBadge);
-              
-              const newContent = content.replace(badgeRegex, newBadge);
+            console.log('Current URL:', currentUrl);
+            console.log('New URL:', newUrl);
 
-              try {
-                const { data: file } = await github.rest.repos.getContent({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  path: 'README.md',
-                  ref: context.ref
-                });
+            // Only proceed if URLs are different
+            core.setOutput('url_changed', currentUrl !== newUrl);
+            core.setOutput('current_url', currentUrl);
 
-                await github.rest.repos.createOrUpdateFileContents({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  path: 'README.md',
-                  message: '[skip ci][skip actions] Update Vercel preview badge URL',
-                  content: Buffer.from(newContent).toString('base64'),
-                  sha: file.sha,
-                  branch: context.ref.replace('refs/heads/', ''),
-                  committer: {
-                    name: 'github-actions[bot]',
-                    email: '41898282+github-actions[bot]@users.noreply.github.com'
-                  }
-                });
-                console.log('Badge updated successfully');
-              } catch (error) {
-                console.error('Error updating file:', error);
-                core.setFailed(`Error updating badge: ${error.message}`);
-              }
-            } else {
-              console.log('Badge is already up to date, skipping update');
-              core.notice('Badge is already up to date, no update needed');
-            }
+      - name: Update Badge
+        if: steps.check-url.outputs.url_changed == 'true'
+        uses: actions/github-script@v7
         env:
-          PREVIEW_URL: ${{ steps.get-preview-url.outputs.preview_url }}
+          NEW_URL: ${{ github.event.deployment_status.target_url }}
+        with:
+          script: |
+            const fs = require('fs');
+
+            try {
+              const content = fs.readFileSync('README.md', 'utf8');
+              const newBadge = `[![Vercel Preview](https://img.shields.io/github/deployments/gearsandcode/cartales-ai/Preview?label=vercel%20preview&logo=vercel&logoColor=white)](${process.env.NEW_URL})`;
+              
+              // Replace the existing badge
+              const newContent = content.replace(/\[!\[Vercel Preview\].*?\]\(.*?\)/, newBadge);
+              
+              // Get the file's current state
+              const { data: file } = await github.rest.repos.getContent({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                path: 'README.md',
+                ref: context.payload.deployment.ref
+              });
+              
+              // Update file with new content
+              await github.rest.repos.createOrUpdateFileContents({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                path: 'README.md',
+                message: 'Update preview URL [skip ci]',
+                content: Buffer.from(newContent).toString('base64'),
+                sha: file.sha,
+                branch: context.payload.deployment.ref,
+                committer: {
+                  name: 'github-actions[bot]',
+                  email: '41898282+github-actions[bot]@users.noreply.github.com'
+                }
+              });
+              
+              console.log('Badge updated successfully');
+            } catch (error) {
+              console.error('Error details:', error);
+              core.setFailed(`Error updating badge: ${error.message}`);
+            }
