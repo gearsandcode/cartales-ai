@@ -22,7 +22,8 @@ jobs:
             });
 
             if (commit.commit.message.includes('Update preview URL')) {
-              core.setFailed('Skipping badge update for badge commit');
+              console.log('Skipping badge update for badge commit');
+              core.setOutput('skip', 'true');
               return;
             }
 
@@ -41,14 +42,15 @@ jobs:
 
             const branchName = branch.ref.replace('refs/heads/', '');
             core.setOutput('branch', branchName);
+            core.setOutput('skip', 'false');
 
       - uses: actions/checkout@v4
-        if: steps.get-branch.outputs.branch != ''
+        if: steps.get-branch.outputs.skip != 'true' && steps.get-branch.outputs.branch != ''
         with:
           ref: ${{ steps.get-branch.outputs.branch }}
 
       - name: Update Badge
-        if: steps.get-branch.outputs.branch != ''
+        if: steps.get-branch.outputs.skip != 'true' && steps.get-branch.outputs.branch != ''
         uses: actions/github-script@v7
         env:
           NEW_URL: ${{ github.event.deployment_status.target_url }}
