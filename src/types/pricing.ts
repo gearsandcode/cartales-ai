@@ -1,11 +1,11 @@
 export type BrandTier =
-  | "exotic"
-  | "ultra-luxury"
-  | "top-tier"
-  | "mid-luxury"
-  | "semi-luxury"
-  | "standard"
-  | "economy";
+  | 'exotic'
+  | 'ultra-luxury'
+  | 'top-tier'
+  | 'mid-luxury'
+  | 'semi-luxury'
+  | 'standard'
+  | 'economy';
 
 export interface BrandConfig {
   tier: BrandTier;

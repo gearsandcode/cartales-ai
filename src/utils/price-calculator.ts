@@ -1,14 +1,13 @@
-import { ModelConfig, DepreciationConfig, BrandTier } from "../types/pricing";
-import { MODEL_PRICING } from "../data/model-pricing";
-import { getBrandConfig } from "../data/pricing-constants";
-import { calculateBasePrice } from "./base-price-calculator";
+import { DepreciationConfig, BrandTier } from '../types/pricing';
+import { getBrandConfig } from '../data/pricing-constants';
+import { calculateBasePrice } from './base-price-calculator';
 
 const MAINTENANCE_MULTIPLIERS: Record<BrandTier, number> = {
   exotic: 5.0,
-  "ultra-luxury": 4.0,
-  "top-tier": 3.0,
-  "mid-luxury": 2.0,
-  "semi-luxury": 1.5,
+  'ultra-luxury': 4.0,
+  'top-tier': 3.0,
+  'mid-luxury': 2.0,
+  'semi-luxury': 1.5,
   standard: 1.0,
   economy: 1.0,
 };
@@ -50,23 +49,23 @@ function getMaintenanceAdjustedDepreciation(
   return currentValue * (1 + maintenanceImpact);
 }
 
-function findModelConfig(make: string, model: string): ModelConfig | undefined {
-  const makeModels = MODEL_PRICING[make];
-  if (!makeModels) return undefined;
+// function findModelConfig(make: string, model: string): ModelConfig | undefined {
+//   const makeModels = MODEL_PRICING[make];
+//   if (!makeModels) return undefined;
 
-  // Try exact match first
-  const exactMatch = makeModels[model];
-  if (exactMatch) return exactMatch;
+//   // Try exact match first
+//   const exactMatch = makeModels[model];
+//   if (exactMatch) return exactMatch;
 
-  // Try matching aliases
-  return Object.values(makeModels).find((config) =>
-    config.aliases.some(
-      (alias: string) =>
-        alias.toLowerCase() === model.toLowerCase() ||
-        model.toLowerCase().includes(alias.toLowerCase())
-    )
-  );
-}
+//   // Try matching aliases
+//   return Object.values(makeModels).find((config) =>
+//     config.aliases.some(
+//       (alias: string) =>
+//         alias.toLowerCase() === model.toLowerCase() ||
+//         model.toLowerCase().includes(alias.toLowerCase())
+//     )
+//   );
+// }
 
 function getDepreciationConfig(basePrice: number): DepreciationConfig {
   if (basePrice >= 1000000) return PRICE_TIERS.ULTRA_EXOTIC;
@@ -80,17 +79,6 @@ export function calculateModelPrice(
   model: string,
   year: number
 ): number {
-  // Check for exact model match first
-  const modelConfig = findModelConfig(make, model);
-  if (modelConfig) {
-    const generation = modelConfig.generations.find(
-      (gen) => year >= gen.startYear && year <= gen.endYear
-    );
-    if (generation) {
-      return generation.basePrice;
-    }
-  }
-
   // For unknown models, calculate based on brand tier and year
   const brandConfig = getBrandConfig(make);
 

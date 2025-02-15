@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
+import { useState } from 'react';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -9,20 +9,20 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CarDetails, initialCarDetails } from "../types/car-details";
-import { BasicInfoTab } from "./basic-info-tab";
-import { DetailsTab } from "./details-tab";
-import { StoryDisplay } from "./story-display";
-import { StoryRequest } from "@/types/story-sections";
-import { StoryResponse } from "@/types/story-response";
+} from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { CarDetails, initialCarDetails } from '../types/car-details';
+import { BasicInfoTab } from './basic-info-tab';
+import { DetailsTab } from './details-tab';
+import { StoryDisplay } from './story-display';
+import { StoryRequest } from '@/types/story-sections';
+import { StoryResponse } from '@/types/story-response';
 import {
   generateOwnershipChain,
   validateOwnershipChain,
-} from "@/utils/ownership-generator";
-import { CarProfile } from "@phosphor-icons/react/dist/ssr";
+} from '@/utils/ownership-generator';
+import { CarProfile } from '@phosphor-icons/react/dist/ssr';
 
 interface FieldValidation {
   isValid: boolean;
@@ -40,7 +40,7 @@ export function CarStoryGenerator() {
   const [storyParts, setStoryParts] = useState<StoryResponse[]>([]);
 
   const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
 
@@ -54,54 +54,54 @@ export function CarStoryGenerator() {
   const handlePreviousOwnersChange = (value: string) => {
     setCarDetails((prev) => ({
       ...prev,
-      previousOwners: value === "random" ? "random" : parseInt(value),
+      previousOwners: value === 'random' ? 'random' : parseInt(value),
     }));
   };
 
   const validateInputs = (): boolean => {
     const requiredFields: (keyof CarDetails)[] = [
-      "year",
-      "make",
-      "model",
-      "ownerName",
-      "purchaseYear",
-      "ownershipDuration",
-      "location",
+      'year',
+      'make',
+      'model',
+      'ownerName',
+      'purchaseYear',
+      'ownershipDuration',
+      'location',
     ];
 
     const validations: Record<string, (value: string) => [boolean, string]> = {
-      year: (value) => [/^\d{4}$/.test(value), "Year must be a 4-digit number"],
+      year: (value) => [/^\d{4}$/.test(value), 'Year must be a 4-digit number'],
       make: (value) => [
         value.length >= 2,
-        "Make must be at least 2 characters",
+        'Make must be at least 2 characters',
       ],
       model: (value) => [
         value.length >= 2,
-        "Model must be at least 2 characters",
+        'Model must be at least 2 characters',
       ],
       ownerName: (value) => [
         value.length >= 2,
-        "Name must be at least 2 characters",
+        'Name must be at least 2 characters',
       ],
       purchaseYear: (value) => {
         if (!/^\d{4}$/.test(value))
-          return [false, "Purchase year must be a 4-digit number"];
+          return [false, 'Purchase year must be a 4-digit number'];
         if (parseInt(value) < parseInt(carDetails.year)) {
           return [false, "Purchase year cannot be before car's year"];
         }
-        return [true, ""];
+        return [true, ''];
       },
       ownershipDuration: (value) => [
         value.length >= 1,
-        "Please specify ownership duration",
+        'Please specify ownership duration',
       ],
       location: (value) => [
         value.length >= 2,
-        "Location must be at least 2 characters",
+        'Location must be at least 2 characters',
       ],
     };
 
-    let firstError = "";
+    let firstError = '';
     const invalidFields = requiredFields.filter((field) => {
       const value = carDetails[field as keyof CarDetails];
       const [isValid, errorMsg] = validations[field](value.toString());
@@ -117,28 +117,28 @@ export function CarStoryGenerator() {
     }
 
     const emptyFields = requiredFields.filter(
-      (field) => !carDetails[field as keyof CarDetails]
+      (field) => !carDetails[field as keyof CarDetails],
     );
 
     if (emptyFields.length > 0) {
-      setError(`Please fill in all required fields: ${emptyFields.join(", ")}`);
+      setError(`Please fill in all required fields: ${emptyFields.join(', ')}`);
       return false;
     }
     return true;
   };
 
   const generateStorySection = async (
-    request: StoryRequest
+    request: StoryRequest,
   ): Promise<StoryResponse> => {
-    const response = await fetch("/api/story", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
+    const response = await fetch('/api/story', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(request),
     });
 
     if (!response.ok) {
       const data = await response.json();
-      throw new Error(data.error || "Failed to generate story section");
+      throw new Error(data.error || 'Failed to generate story section');
     }
 
     return response.json();
@@ -159,14 +159,14 @@ export function CarStoryGenerator() {
         !validateOwnershipChain(ownershipChain, parseInt(carDetails.year))
       ) {
         setError(
-          "Failed to generate valid ownership timeline. Please check the car details."
+          'Failed to generate valid ownership timeline. Please check the car details.',
         );
         return;
       }
 
       // Generate introduction
       const intro = await generateStorySection({
-        type: "introduction",
+        type: 'introduction',
         carDetails,
         ownershipChain,
       });
@@ -176,7 +176,7 @@ export function CarStoryGenerator() {
       const previousOwnerStories: StoryResponse[] = [];
       for (let i = 0; i < ownershipChain.previousOwners.length; i++) {
         const prevOwner = await generateStorySection({
-          type: "previousOwner",
+          type: 'previousOwner',
           carDetails,
           ownershipChain,
           ownerIndex: i,
@@ -188,7 +188,7 @@ export function CarStoryGenerator() {
 
       // Generate current owner's story
       const currentOwner = await generateStorySection({
-        type: "currentOwner",
+        type: 'currentOwner',
         carDetails,
         ownershipChain,
         previousOwnerStories: previousOwnerStories.map((s) => s.content),
@@ -197,13 +197,13 @@ export function CarStoryGenerator() {
 
       // Generate conclusion
       const conclusion = await generateStorySection({
-        type: "conclusion",
+        type: 'conclusion',
         carDetails,
         ownershipChain,
       });
       setStoryParts((prev) => [...prev, conclusion]);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to generate story");
+      setError(err instanceof Error ? err.message : 'Failed to generate story');
     } finally {
       setIsLoading(false);
     }
@@ -220,7 +220,7 @@ export function CarStoryGenerator() {
       return sectionOrder[a.section] - sectionOrder[b.section];
     })
     .map((part) => part.content)
-    .join("\n\n");
+    .join('\n\n');
 
   return (
     <div className="w-full max-w-4xl mx-auto">
@@ -274,7 +274,7 @@ export function CarStoryGenerator() {
                 Generating Story...
               </>
             ) : (
-              "Generate story"
+              'Generate story'
             )}
           </Button>
         </CardFooter>

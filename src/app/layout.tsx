@@ -1,17 +1,17 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
-import { GitHubCorner } from "@/components/github-corner";
-import { Coffee, Heart } from "@phosphor-icons/react/dist/ssr";
+import type { Metadata } from 'next';
+import { Inter } from 'next/font/google';
+import './globals.css';
+import { GitHubCorner } from '@/components/github-corner';
+import { Coffee, Heart } from '@phosphor-icons/react/dist/ssr';
 
 const inter = Inter({
-  subsets: ["latin"],
-  display: "swap",
-  variable: "--font-inter",
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-inter',
 });
 
 export const metadata: Metadata = {
-  title: "Car Tales AI",
+  title: 'Car Tales AI',
   description: "Generate personalized stories about your car's history",
 };
 
@@ -49,7 +49,7 @@ export default function RootLayout({
           <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-1 flex-wrap">
             <div className="flex items-center gap-1 text-center sm:text-left">
               <span>
-                Issues or feature requests? Add them on{" "}
+                Issues or feature requests? Add them on
                 <a
                   href="https://github.com/gearsandcode/cartales-ai/issues"
                   target="_blank"
