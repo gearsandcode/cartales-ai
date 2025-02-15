@@ -3,99 +3,35 @@ name: Update Vercel Badge
 on: deployment_status
 
 jobs:
-  check-commit:
-    if: github.event.deployment_status.state == 'success'
-    runs-on: ubuntu-latest
-    outputs:
-      should_run: ${{ steps.check.outputs.should_run }}
-      branch: ${{ steps.get-branch.outputs.branch }}
-    steps:
-      - name: Get commit information
-        id: check
-        uses: actions/github-script@v7
-        with:
-          script: |
-            try {
-              // Get the commit that triggered this deployment
-              const { data: commit } = await github.rest.repos.getCommit({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                ref: context.payload.deployment.sha
-              });
-              
-              // Check if this was from a badge update
-              const isBadgeUpdate = commit.commit.message.includes('Update preview URL');
-              console.log('Commit message:', commit.commit.message);
-              console.log('Is badge update:', isBadgeUpdate);
-              
-              core.setOutput('should_run', !isBadgeUpdate);
-            } catch (error) {
-              console.error('Error checking commit:', error);
-              core.setOutput('should_run', false);
-            }
-
-      - name: Get branch from SHA
-        id: get-branch
-        if: steps.check.outputs.should_run == 'true'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            try {
-              const { data: refs } = await github.rest.git.listMatchingRefs({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                ref: 'heads/'
-              });
-              
-              const branch = refs.find(ref => ref.object.sha === context.payload.deployment.sha);
-              if (!branch) {
-                throw new Error('No branch found for this commit');
-              }
-              
-              const branchName = branch.ref.replace('refs/heads/', '');
-              console.log('Found branch:', branchName);
-              core.setOutput('branch', branchName);
-            } catch (error) {
-              console.error('Error finding branch:', error);
-              core.setFailed(error.message);
-            }
-
   update-badge:
-    needs: check-commit
-    if: needs.check-commit.outputs.should_run == 'true' && needs.check-commit.outputs.branch != ''
+    if: github.event.deployment_status.state == 'success'
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ needs.check-commit.outputs.branch }}
-
-      - name: Check if URL changed
-        id: check-url
+      - name: Early exit if badge update commit
         uses: actions/github-script@v7
-        env:
-          NEW_URL: ${{ github.event.deployment_status.target_url }}
         with:
           script: |
-            const fs = require('fs');
-            const content = fs.readFileSync('README.md', 'utf8');
+            const { data: commit } = await github.rest.repos.getCommit({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: context.payload.deployment.sha
+            });
 
-            const urlMatch = content.match(/\[!\[Vercel Preview\].*?\]\((.*?)\)/);
-            const currentUrl = urlMatch ? urlMatch[1] : '';
-            const newUrl = process.env.NEW_URL;
+            if (commit.commit.message.includes('Update preview URL')) {
+              core.setFailed('Skipping badge update for badge commit');
+              return;
+            }
 
-            console.log('Current URL:', currentUrl);
-            console.log('New URL:', newUrl);
-
-            core.setOutput('url_changed', currentUrl !== newUrl);
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.deployment.ref }}
 
       - name: Update Badge
-        if: steps.check-url.outputs.url_changed == 'true'
         uses: actions/github-script@v7
         env:
           NEW_URL: ${{ github.event.deployment_status.target_url }}
-          BRANCH: ${{ needs.check-commit.outputs.branch }}
         with:
           script: |
             const fs = require('fs');
@@ -104,13 +40,23 @@ jobs:
               const content = fs.readFileSync('README.md', 'utf8');
               const newBadge = `[![Vercel Preview](https://img.shields.io/github/deployments/gearsandcode/cartales-ai/Preview?label=vercel%20preview&logo=vercel&logoColor=white)](${process.env.NEW_URL})`;
               
+              // Check if URL has changed
+              const urlMatch = content.match(/\[!\[Vercel Preview\].*?\]\((.*?)\)/);
+              const currentUrl = urlMatch ? urlMatch[1] : '';
+              
+              if (currentUrl === process.env.NEW_URL) {
+                console.log('URL unchanged, skipping update');
+                return;
+              }
+              
+              // Update badge
               const newContent = content.replace(/\[!\[Vercel Preview\].*?\]\(.*?\)/, newBadge);
               
               const { data: file } = await github.rest.repos.getContent({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 path: 'README.md',
-                ref: process.env.BRANCH
+                ref: context.ref
               });
               
               await github.rest.repos.createOrUpdateFileContents({
@@ -120,7 +66,7 @@ jobs:
                 message: 'Update preview URL [skip ci]',
                 content: Buffer.from(newContent).toString('base64'),
                 sha: file.sha,
-                branch: process.env.BRANCH,
+                branch: context.ref,
                 committer: {
                   name: 'github-actions[bot]',
                   email: '41898282+github-actions[bot]@users.noreply.github.com'
@@ -129,6 +75,5 @@ jobs:
               
               console.log('Badge updated successfully');
             } catch (error) {
-              console.error('Error details:', error);
               core.setFailed(`Error updating badge: ${error.message}`);
             }
