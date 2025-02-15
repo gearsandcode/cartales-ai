@@ -4,10 +4,12 @@ on: deployment_status
 
 jobs:
   update-badge:
-    # Only run on successful deployments and skip if the commit was from our action
+    # Add additional checks to prevent recursive updates
     if: |
       github.event.deployment_status.state == 'success' && 
-      !contains(github.event.deployment.ref, 'Update Vercel preview badge URL [skip ci] [skip actions]')
+      !contains(github.event.deployment.ref, 'Update Vercel preview badge URL') &&
+      !contains(github.event.deployment_status.description, 'Preview badge update') &&
+      github.event.deployment.environment == 'Preview'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -34,12 +36,13 @@ jobs:
 
             // Match the Vercel Preview badge by its alt text and capture everything up to the closing parenthesis
             const badgeRegex = /\[!\[Vercel Preview\].*?\]\(.*?\)/;
-            const newContent = content.replace(
-              badgeRegex,
-              `[![Vercel Preview](https://img.shields.io/github/deployments/gearsandcode/cartales-ai/Preview?label=vercel%20preview&logo=vercel&logoColor=white)](${process.env.PREVIEW_URL})`
-            );
+            const newBadge = `[![Vercel Preview](https://img.shields.io/github/deployments/gearsandcode/cartales-ai/Preview?label=vercel%20preview&logo=vercel&logoColor=white)](${process.env.PREVIEW_URL})`;
 
-            if (content !== newContent) {
+            // Check if the badge actually needs updating
+            const currentBadge = content.match(badgeRegex)?.[0];
+            if (!currentBadge || currentBadge !== newBadge) {
+              const newContent = content.replace(badgeRegex, newBadge);
+
               try {
                 const { data: refs } = await github.rest.git.listMatchingRefs({
                   owner: context.repo.owner,
@@ -72,7 +75,11 @@ jobs:
                       message: 'Update Vercel preview badge URL [skip ci] [skip actions]',
                       content: Buffer.from(newContent).toString('base64'),
                       sha: file.sha,
-                      branch: branch
+                      branch: branch,
+                      committer: {
+                        name: 'github-actions[bot]',
+                        email: 'github-actions[bot]@users.noreply.github.com'
+                      }
                     });
                     break;
                   }
@@ -81,6 +88,8 @@ jobs:
                 console.error('Error updating file:', error);
                 process.exit(1);
               }
+            } else {
+              console.log('Badge is already up to date, skipping update');
             }
         env:
           PREVIEW_URL: ${{ steps.get-preview-url.outputs.preview_url }}
