@@ -10,7 +10,7 @@ jobs:
       should_run: ${{ steps.check.outputs.should_run }}
       branch: ${{ steps.get-branch.outputs.branch }}
     steps:
-      - name: Get commit info
+      - name: Get commit information
         id: check
         uses: actions/github-script@v7
         with:
