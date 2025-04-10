@@ -7,7 +7,7 @@ This project is a web application that uses AI to generate stories based on user
 
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-## Get Started
+## Let's Get Started
 
 First, run the development server:
 
