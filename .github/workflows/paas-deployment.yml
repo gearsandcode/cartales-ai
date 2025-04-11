@@ -1,18 +1,7 @@
-#
-# Reusable version of Reun Media Coolify Deployment GitHub Action workflow
-#
-# @author Reun Media <company@reun.eu>
-# @copyright 2024 Reun Media
-#
-# @see https://github.com/ReunMedia/project-templates
-#
-# @version 1.0.1
-#
-
 name: "Deployment"
 
 on:
-  workflow_call:
+  workflow_dispatch:
     inputs:
       paas_url:
         description: "URL must not end in a slash."
