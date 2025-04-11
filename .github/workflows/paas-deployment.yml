@@ -29,7 +29,7 @@ jobs:
         with:
           url: ${{inputs.paas_url}}/api/v1/applications/${{inputs.paas_resource_id}}
           method: PATCH
-          bearerToken: ${{secrets.paas_api_token}}
+          bearerToken: ${{inputs.paas_api_token}}
           data: >-
             {
             "git_commit_sha": "${{github.sha}}"
@@ -40,4 +40,4 @@ jobs:
         with:
           url: ${{inputs.paas_url}}/api/v1/deploy?uuid=${{inputs.paas_resource_id}}&force=false
           method: GET
-          bearerToken: ${{secrets.paas_api_token}}
+          bearerToken: ${{inputs.paas_api_token}}
