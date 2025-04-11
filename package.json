@@ -8,7 +8,10 @@
     "build": "next build",
     "start": "npm run build && NODE_ENV=production next start",
     "lint": "next lint",
-    "test": "vitest --coverage"
+    "test": "vitest --coverage",
+    "changeset": "changeset",
+    "version": "changeset version",
+    "release": "changeset publish"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.33.1",
@@ -28,6 +31,7 @@
     "tailwind-merge": "^2.6.0"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.28.1",
     "@eslint/eslintrc": "^3",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^14.3.1",
