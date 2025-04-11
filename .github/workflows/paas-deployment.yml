@@ -1,0 +1,58 @@
+#
+# Reusable version of Reun Media Coolify Deployment GitHub Action workflow
+#
+# @author Reun Media <company@reun.eu>
+# @copyright 2024 Reun Media
+#
+# @see https://github.com/ReunMedia/project-templates
+#
+# @version 1.0.1
+#
+
+name: "Deployment"
+
+on:
+  workflow_call:
+    inputs:
+      paas_url:
+        description: "URL must not end in a slash."
+        required: true
+        type: string
+      paas_resource_id:
+        required: true
+        type: string
+    secrets:
+      paas_api_token:
+        required: true
+
+jobs:
+  paas-deployment:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate variables
+        env:
+          PAAS_URL: ${{inputs.paas_url}}
+        run: |
+          echo "Validating that paas_url doesn't end in '/'"
+          echo "$PAAS_URL" | grep -P '[^/]$'
+
+      # Update Coolify project's source commit SHA via API request. This
+      # is done to make sure Coolify deploys the exact commit that
+      # triggered this action.
+      - name: Update source commit SHA in Coolify
+        uses: fjogeleit/http-request-action@v1
+        with:
+          url: ${{inputs.paas_url}}/api/v1/applications/${{inputs.paas_resource_id}}
+          method: PATCH
+          bearerToken: ${{secrets.paas_api_token}}
+          data: >-
+            {
+            "git_commit_sha": "${{github.sha}}"
+            }
+
+      - name: Trigger deployment via webhook
+        uses: fjogeleit/http-request-action@v1
+        with:
+          url: ${{inputs.paas_url}}/api/v1/deploy?uuid=${{inputs.paas_resource_id}}&force=false
+          method: GET
+          bearerToken: ${{secrets.paas_api_token}}
