@@ -1,13 +1,13 @@
-import { ModelPricing } from "../types/pricing-types";
+import { ModelPricing } from '../types/pricing-types';
 
 export const MazdaPricing: Record<string, ModelPricing> = {
-  "RX-7": {
-    baseModel: "RX-7",
-    aliases: ["RX-7", "RX7", "FD"],
+  'RX-7': {
+    baseModel: 'RX-7',
+    aliases: ['RX-7', 'RX7', 'FD'],
     defaultMultiplier: 2.92,
     generations: [
       {
-        generation: "FD",
+        generation: 'FD',
         startYear: 1992,
         endYear: 2002,
         basePrice: 35000,
@@ -15,13 +15,13 @@ export const MazdaPricing: Record<string, ModelPricing> = {
       },
     ],
   },
-  "MX-5": {
-    baseModel: "MX-5",
-    aliases: ["MX-5", "Miata", "MX5"],
+  'MX-5': {
+    baseModel: 'MX-5',
+    aliases: ['MX-5', 'Miata', 'MX5'],
     defaultMultiplier: 2.29,
     generations: [
       {
-        generation: "ND",
+        generation: 'ND',
         startYear: 2015,
         endYear: 2024,
         basePrice: 27500,

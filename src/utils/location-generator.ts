@@ -1,42 +1,42 @@
 const US_REGIONS = [
   {
-    region: "Northeast",
+    region: 'Northeast',
     cities: [
-      "Boston, MA",
-      "New York, NY",
-      "Philadelphia, PA",
-      "Pittsburgh, PA",
-      "Providence, RI",
+      'Boston, MA',
+      'New York, NY',
+      'Philadelphia, PA',
+      'Pittsburgh, PA',
+      'Providence, RI',
     ],
   },
   {
-    region: "Midwest",
+    region: 'Midwest',
     cities: [
-      "Chicago, IL",
-      "Detroit, MI",
-      "Cleveland, OH",
-      "Minneapolis, MN",
-      "Milwaukee, WI",
+      'Chicago, IL',
+      'Detroit, MI',
+      'Cleveland, OH',
+      'Minneapolis, MN',
+      'Milwaukee, WI',
     ],
   },
   {
-    region: "South",
+    region: 'South',
     cities: [
-      "Atlanta, GA",
-      "Nashville, TN",
-      "Charlotte, NC",
-      "Miami, FL",
-      "Houston, TX",
+      'Atlanta, GA',
+      'Nashville, TN',
+      'Charlotte, NC',
+      'Miami, FL',
+      'Houston, TX',
     ],
   },
   {
-    region: "West",
+    region: 'West',
     cities: [
-      "Los Angeles, CA",
-      "San Francisco, CA",
-      "Seattle, WA",
-      "Portland, OR",
-      "Denver, CO",
+      'Los Angeles, CA',
+      'San Francisco, CA',
+      'Seattle, WA',
+      'Portland, OR',
+      'Denver, CO',
     ],
   },
 ];
@@ -50,7 +50,7 @@ export function generateRandomLocation(): string {
 export function getNearbyLocation(currentLocation: string): string {
   // Find the current region
   const currentRegion = US_REGIONS.find((region) =>
-    region.cities.some((city) => city === currentLocation)
+    region.cities.some((city) => city === currentLocation),
   );
 
   if (!currentRegion) {
@@ -60,7 +60,7 @@ export function getNearbyLocation(currentLocation: string): string {
   // 70% chance to stay in the same region
   if (Math.random() < 0.7) {
     const otherCities = currentRegion.cities.filter(
-      (city) => city !== currentLocation
+      (city) => city !== currentLocation,
     );
     return otherCities[Math.floor(Math.random() * otherCities.length)];
   }

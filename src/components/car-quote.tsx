@@ -1,7 +1,7 @@
-"use client";
+'use client';
 
-import { useId } from "react";
-import { getRandomQuote } from "@/data/car-quotes";
+import { useId } from 'react';
+import { getRandomQuote } from '@/data/car-quotes';
 
 export function CarQuote() {
   // Generate a unique ID for this instance

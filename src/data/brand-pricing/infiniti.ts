@@ -1,13 +1,13 @@
-import { ModelPricing } from "../types/pricing-types";
+import { ModelPricing } from '../types/pricing-types';
 
 export const InfinitiPricing: Record<string, ModelPricing> = {
   Q60: {
-    baseModel: "Q60",
-    aliases: ["Q60", "Q60 Red Sport"],
+    baseModel: 'Q60',
+    aliases: ['Q60', 'Q60 Red Sport'],
     defaultMultiplier: 4.58,
     generations: [
       {
-        generation: "Second Gen",
+        generation: 'Second Gen',
         startYear: 2017,
         endYear: 2024,
         basePrice: 55000,
@@ -16,12 +16,12 @@ export const InfinitiPricing: Record<string, ModelPricing> = {
     ],
   },
   G35: {
-    baseModel: "G35",
-    aliases: ["G35", "G35 Coupe"],
+    baseModel: 'G35',
+    aliases: ['G35', 'G35 Coupe'],
     defaultMultiplier: 2.92,
     generations: [
       {
-        generation: "V35",
+        generation: 'V35',
         startYear: 2003,
         endYear: 2007,
         basePrice: 35000,

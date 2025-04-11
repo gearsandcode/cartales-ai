@@ -1,7 +1,7 @@
-import { ValidatedInput } from "@/components/ui/validated-input";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { BasicCarDetails } from "../types/car-details";
+import { ValidatedInput } from '@/components/ui/validated-input';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { BasicCarDetails } from '../types/car-details';
 
 interface BasicInfoTabProps {
   carDetails: BasicCarDetails;
@@ -15,55 +15,55 @@ export function BasicInfoTab({
   onPreviousOwnersChange,
 }: BasicInfoTabProps) {
   const initialCarDetails: BasicCarDetails = {
-    year: carDetails.year || "",
-    make: carDetails.make || "",
-    model: carDetails.model || "",
-    ownerName: carDetails.ownerName || "",
-    purchaseYear: carDetails.purchaseYear || "",
-    ownershipDuration: carDetails.ownershipDuration || "",
-    location: carDetails.location || "",
-    acquisitionStory: carDetails.acquisitionStory || "",
-    departureStory: carDetails.departureStory || "",
-    previousOwners: carDetails.previousOwners || "random",
+    year: carDetails.year || '',
+    make: carDetails.make || '',
+    model: carDetails.model || '',
+    ownerName: carDetails.ownerName || '',
+    purchaseYear: carDetails.purchaseYear || '',
+    ownershipDuration: carDetails.ownershipDuration || '',
+    location: carDetails.location || '',
+    acquisitionStory: carDetails.acquisitionStory || '',
+    departureStory: carDetails.departureStory || '',
+    previousOwners: carDetails.previousOwners || 'random',
   };
 
   const validations = {
     year: (value: string) => ({
       isValid: /^\d{4}$/.test(value),
-      message: "Year must be a 4-digit number",
+      message: 'Year must be a 4-digit number',
     }),
     make: (value: string) => ({
       isValid: value.length >= 2,
-      message: "Make must be at least 2 characters",
+      message: 'Make must be at least 2 characters',
     }),
     model: (value: string) => ({
       isValid: value.length >= 2,
-      message: "Model must be at least 2 characters",
+      message: 'Model must be at least 2 characters',
     }),
     ownerName: (value: string) => ({
       isValid: value.length >= 2,
-      message: "Name must be at least 2 characters",
+      message: 'Name must be at least 2 characters',
     }),
     purchaseYear: (value: string) => {
       if (!/^\d{4}$/.test(value))
         return {
           isValid: false,
-          message: "Purchase year must be a 4-digit number",
+          message: 'Purchase year must be a 4-digit number',
         };
       if (carDetails.year && parseInt(value) < parseInt(carDetails.year))
         return {
           isValid: false,
           message: "Purchase year cannot be before car's year",
         };
-      return { isValid: true, message: "" };
+      return { isValid: true, message: '' };
     },
     ownershipDuration: (value: string) => ({
       isValid: value.length >= 1,
-      message: "Please specify ownership duration",
+      message: 'Please specify ownership duration',
     }),
     location: (value: string) => ({
       isValid: value.length >= 2,
-      message: "Location must be at least 2 characters",
+      message: 'Location must be at least 2 characters',
     }),
   };
 

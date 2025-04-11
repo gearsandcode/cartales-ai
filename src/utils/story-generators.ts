@@ -1,7 +1,7 @@
-import { CarDetails } from "@/types/car-details";
-import { OwnershipPeriod } from "@/types/ownership-chain";
+import { CarDetails } from '@/types/car-details';
+import { OwnershipPeriod } from '@/types/ownership-chain';
 
-function resolvePlaceholderName(placeholder: string): string {
+export function resolvePlaceholderName(placeholder: string): string {
   const yearMatch = placeholder.match(/\[OWNER_NAME_(\d{4})\]/);
   if (!yearMatch) return placeholder;
 
@@ -31,15 +31,15 @@ export function generatePreviousOwnerPrompt(
   previousPeriod: OwnershipPeriod | null,
   nextPeriod: OwnershipPeriod
 ): string {
-  const ownerName = ownerPeriod.ownerName.startsWith("[OWNER_NAME_")
+  const ownerName = ownerPeriod.ownerName.startsWith('[OWNER_NAME_')
     ? resolvePlaceholderName(ownerPeriod.ownerName)
     : ownerPeriod.ownerName;
 
-  const previousOwnerName = previousPeriod?.ownerName.startsWith("[OWNER_NAME_")
+  const previousOwnerName = previousPeriod?.ownerName.startsWith('[OWNER_NAME_')
     ? resolvePlaceholderName(previousPeriod.ownerName)
     : previousPeriod?.ownerName;
 
-  const nextOwnerName = nextPeriod.ownerName.startsWith("[OWNER_NAME_")
+  const nextOwnerName = nextPeriod.ownerName.startsWith('[OWNER_NAME_')
     ? resolvePlaceholderName(nextPeriod.ownerName)
     : nextPeriod.ownerName;
 
@@ -59,7 +59,7 @@ export function generatePreviousOwnerPrompt(
     details.year
   } ${details.make} ${details.model}.
 Timeline Context:
-1. Previous Owner: ${previousOwnerName || "Original owner"}
+1. Previous Owner: ${previousOwnerName || 'Original owner'}
 2. Current Owner: ${ownerName}
 3. Next Owner: ${nextOwnerName}
 4. Ownership Period: ${ownerPeriod.startYear} to ${ownerPeriod.endYear}
@@ -97,17 +97,17 @@ export function generateCurrentOwnerPrompt(
   currentOwner: OwnershipPeriod,
   previousOwner: OwnershipPeriod | null
 ): string {
-  const previousOwnerName = previousOwner?.ownerName.startsWith("[OWNER_NAME_")
+  const previousOwnerName = previousOwner?.ownerName.startsWith('[OWNER_NAME_')
     ? resolvePlaceholderName(previousOwner.ownerName)
     : previousOwner?.ownerName;
 
   const customizationsText = details.customizations
     ? `\n\nCustomizations and Modifications: ${details.customizations}`
-    : "";
+    : '';
 
   const maintenanceText = details.maintenance
     ? `\n\nMaintenance History: ${details.maintenance}`
-    : "";
+    : '';
 
   const acquisitionContext = previousOwner
     ? `acquired from ${previousOwnerName} in ${
@@ -123,7 +123,7 @@ export function generateCurrentOwnerPrompt(
 
 Timeline Context:
 1. Purchase year: ${details.purchaseYear}
-2. Previous Owner: ${previousOwnerName || "Original owner"}
+2. Previous Owner: ${previousOwnerName || 'Original owner'}
 3. Current Owner: ${details.ownerName}
 4. Ownership duration: ${details.ownershipDuration}
 5. Location: ${details.location}

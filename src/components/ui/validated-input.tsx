@@ -1,7 +1,7 @@
-import React from "react";
-import { cn } from "@/lib/utils";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import React from 'react';
+import { cn } from '@/lib/utils';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 interface ValidatedInputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -51,16 +51,16 @@ const ValidatedInput = React.forwardRef<HTMLInputElement, ValidatedInputProps>(
           onChange={handleChange}
           onBlur={handleBlur}
           className={cn(
-            error && "border-red-500 focus-visible:ring-red-500",
-            className
+            error && 'border-red-500 focus-visible:ring-red-500',
+            className,
           )}
         />
         {error && touched && <p className="text-sm text-red-500">{error}</p>}
       </div>
     );
-  }
+  },
 );
 
-ValidatedInput.displayName = "ValidatedInput";
+ValidatedInput.displayName = 'ValidatedInput';
 
 export { ValidatedInput };

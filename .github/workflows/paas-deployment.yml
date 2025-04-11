@@ -1,10 +1,10 @@
-name: "Deployment"
+name: 'Deployment'
 
 on:
   workflow_dispatch:
     inputs:
       paas_url:
-        description: "URL must not end in a slash."
+        description: 'URL must not end in a slash.'
         required: true
         type: string
       paas_resource_id:
@@ -24,10 +24,7 @@ jobs:
           echo "Validating that paas_url doesn't end in '/'"
           echo "$PAAS_URL" | grep -P '[^/]$'
 
-      # Update Coolify project's source commit SHA via API request. This
-      # is done to make sure Coolify deploys the exact commit that
-      # triggered this action.
-      - name: Update source commit SHA in Coolify
+      - name: Update source commit SHA in PAAS
         uses: fjogeleit/http-request-action@v1
         with:
           url: ${{inputs.paas_url}}/api/v1/applications/${{inputs.paas_resource_id}}
