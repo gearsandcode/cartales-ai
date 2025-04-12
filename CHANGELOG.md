@@ -1,5 +1,11 @@
 # car-story-generator
 
+## 0.2.4
+
+### Patch Changes
+
+- 23b0b8f: ci: updates to our changeset publishing workflow
+
 ## 0.2.3
 
 ### Patch Changes
