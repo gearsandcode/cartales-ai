@@ -41,10 +41,17 @@ jobs:
             echo "✅ Version in package.json matches release tag: $VERSION"
           fi
 
+      - name: Generate GitHub App Token
+        id: generate-token
+        uses: ./.github/actions/generate-token
+        with:
+          app_id: ${{ secrets.CHANGESET_APP_ID }} # Reuse the same app or use different app secrets
+          private_key: ${{ secrets.CHANGESET_APP_KEY }}
+
       - name: Create GitHub Deployment
         id: create_deployment
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
         run: |
           # Store full response for debugging
           HTTP_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
@@ -85,16 +92,6 @@ jobs:
 
       - name: Build Project
         run: npm run build
-
-      - name: Commit Updated Files
-        run: |
-          git config --local user.email "github-actions[bot]@users.noreply.github.com"
-          git config --local user.name "github-actions[bot]"
-          git add package.json CHANGELOG.md
-          git commit -m "chore: update version to $VERSION [skip ci]"
-          git push
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Deploy to Production
         uses: ./.github/actions/deploy
@@ -180,7 +177,7 @@ jobs:
 
       - name: Update GitHub Deployment Status
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
         run: |
           DEPLOY_STATUS="${{ steps.verify_deployment.outputs.deploy_status }}"
           DEPLOY_URL="${{ steps.verify_deployment.outputs.deploy_url }}"
