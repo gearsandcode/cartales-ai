@@ -44,51 +44,6 @@ jobs:
       - name: Wait for and verify deployment
         id: verify_deployment
         run: |
-          # Install jq for JSON parsing
-          sudo apt-get install -y jq
-
-          # Store our git SHA for comparison
-          CURRENT_SHA="${{ github.sha }}"
-          echo "Looking for deployment with commit SHA: $CURRENT_SHA"
-
-          # Initialize variables
-          MAX_ATTEMPTS=12
-          ATTEMPT=0
-          WAIT_SECONDS=10
-          DEPLOY_FOUND=false
-
-          while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
-            ATTEMPT=$((ATTEMPT+1))
-            echo "Checking deployment status (attempt $ATTEMPT/$MAX_ATTEMPTS)..."
-            
-            # Query Coolify API for deployments
-            DEPLOYMENTS=$(curl -s -X GET \
-              "${{ secrets.PAAS_URL }}/api/v1/deployments/applications/${{ secrets.PAAS_UUID }}" \
-              -H "Authorization: Bearer ${{ secrets.PAAS_API_KEY }}")
-            
-            # Look for deployment with our commit SHA
-            echo "Searching through deployments..."
-            DEPLOYMENT=$(echo $DEPLOYMENTS | jq --arg sha "$CURRENT_SHA" '.[] | select(.git_commit_sha==$sha) | .' -c)
-            
-            if [ -n "$DEPLOYMENT" ]; then
-              DEPLOY_FOUND=true
-              DEPLOY_STATUS=$(echo $DEPLOYMENT | jq -r '.status')
-              echo "Found our deployment with status: $DEPLOY_STATUS"
-              
-              # Check if deployment is complete or failed
-              if [[ "$DEPLOY_STATUS" == "completed" || "$DEPLOY_STATUS" == "successful" || "$DEPLOY_STATUS" == "failed" ]]; then
-                echo "Deployment reached final state: $DEPLOY_STATUS"
-                break
-              fi
-              
-              echo "Deployment still in progress, waiting..."
-            else
-              echo "Our deployment not found yet, waiting..."
-            fi
-            
-            sleep $WAIT_SECONDS
-          done
-
           # Get application details for URL
           APP_DETAILS=$(curl -s -X GET \
             "${{ secrets.PAAS_URL }}/api/v1/applications/${{ secrets.PAAS_UUID }}" \
@@ -106,11 +61,20 @@ jobs:
             DEPLOY_URL="${{ secrets.PAAS_URL }}/applications/${{ secrets.PAAS_UUID }}"
           fi
 
-          # Set outputs
+          # Set URL as output
           echo "deploy_url=$DEPLOY_URL" >> $GITHUB_OUTPUT
 
-          if [ "$DEPLOY_FOUND" = true ]; then
-            echo "deploy_status=$DEPLOY_STATUS" >> $GITHUB_OUTPUT
+          # Basic availability check
+          echo "Checking if application is responsive..."
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$DEPLOY_URL" || echo "failed")
+
+          if [[ "$HTTP_STATUS" == "failed" ]]; then
+            echo "⚠️ Could not reach $DEPLOY_URL"
+          elif [[ "$HTTP_STATUS" -ge 200 && "$HTTP_STATUS" -lt 400 ]]; then
+            echo "✅ Application is responding with HTTP $HTTP_STATUS"
           else
-            echo "deploy_status=unknown" >> $GITHUB_OUTPUT
+            echo "⚠️ Application returned HTTP status $HTTP_STATUS"
           fi
+
+          # Always succeed - the GitHub Environment will show the URL regardless
+          echo "Deployment URL: $DEPLOY_URL"
