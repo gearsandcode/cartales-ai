@@ -1,5 +1,11 @@
 # car-story-generator
 
+## 0.2.6
+
+### Patch Changes
+
+- 4614f96: ci: still testing changeset cd workflows
+
 ## 0.2.5
 
 ### Patch Changes
