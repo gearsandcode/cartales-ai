@@ -30,7 +30,7 @@ jobs:
 
       - name: Generate GitHub App Token
         id: generate-token
-        uses: tibdex/github-app-token@v1
+        uses: ./.github/actions/generate-token
         with:
           app_id: ${{ secrets.CHANGESET_APP_ID }}
           private_key: ${{ secrets.CHANGESET_APP_KEY }}
