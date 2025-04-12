@@ -48,23 +48,23 @@ jobs:
           # Apply the changeset
           npx changeset version
 
-          - name: Create GitHub Deployment
-          id: create_deployment
-          env:
-            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          run: |
-            DEPLOY_ID=$(curl -s -X POST \
-              -H "Authorization: token $GITHUB_TOKEN" \
-              -H "Accept: application/vnd.github.v3+json" \
-              -d "{\"ref\":\"${{ github.ref }}\", \"environment\":\"production\", \"description\":\"Deploying version $VERSION\", \"auto_merge\":false}" \
-              "https://api.github.com/repos/${{ github.repository }}/deployments" | jq -r '.id')
-            echo "deploy_id=$DEPLOY_ID" >> $GITHUB_OUTPUT
-            
-            curl -s -X POST \
-              -H "Authorization: token $GITHUB_TOKEN" \
-              -H "Accept: application/vnd.github.v3+json" \
-              -d "{\"state\":\"in_progress\", \"description\":\"Deployment started\"}" \
-              "https://api.github.com/repos/${{ github.repository }}/deployments/$DEPLOY_ID/statuses"
+      - name: Create GitHub Deployment
+        id: create_deployment
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          DEPLOY_ID=$(curl -s -X POST \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            -d "{\"ref\":\"${{ github.ref }}\", \"environment\":\"production\", \"description\":\"Deploying version $VERSION\", \"auto_merge\":false}" \
+            "https://api.github.com/repos/${{ github.repository }}/deployments" | jq -r '.id')
+          echo "deploy_id=$DEPLOY_ID" >> $GITHUB_OUTPUT
+
+          curl -s -X POST \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            -d "{\"state\":\"in_progress\", \"description\":\"Deployment started\"}" \
+            "https://api.github.com/repos/${{ github.repository }}/deployments/$DEPLOY_ID/statuses"
 
       - name: Build Project
         run: npm run build
