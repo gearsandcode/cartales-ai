@@ -1,0 +1,219 @@
+name: Release
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  process-release:
+    name: Release process
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🛒 Checkout Repo
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Extract Version from Tag
+        id: get_version
+        run: |
+          # Remove 'v' prefix if present (v1.2.3 -> 1.2.3)
+          VERSION=${GITHUB_REF_NAME#v}
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+          echo "Version extracted: $VERSION"
+
+      - name: Update Package Version
+        run: |
+          # Update version in package.json
+          npm version $VERSION --no-git-tag-version
+
+      - name: Generate/Update Changelog
+        run: |
+          # Create a temp changelog entry file
+          echo "---" > .changeset/release-${VERSION}.md
+          echo "\"car-story-generator\": $VERSION" >> .changeset/release-${VERSION}.md
+          echo "---" >> .changeset/release-${VERSION}.md
+          echo "" >> .changeset/release-${VERSION}.md
+          echo "${{ github.event.release.body }}" >> .changeset/release-${VERSION}.md
+
+          # Apply the changeset
+          npx changeset version
+
+      - name: Create GitHub Deployment
+        id: create_deployment
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Store full response for debugging
+          HTTP_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
+            -H "Authorization: token $GITHUB_TOKEN" \
+            -H "Accept: application/vnd.github.v3+json" \
+            -d "{\"ref\":\"${{ github.ref }}\", \"environment\":\"production\", \"description\":\"Deploying version $VERSION\", \"auto_merge\":false}" \
+            "https://api.github.com/repos/${{ github.repository }}/deployments")
+
+          # Extract status code and response body
+          HTTP_STATUS=$(echo "$HTTP_RESPONSE" | tail -n1)
+          HTTP_BODY=$(echo "$HTTP_RESPONSE" | sed '$ d')
+
+          echo "GitHub API status code: $HTTP_STATUS"
+
+          # Check if request was successful
+          if [ "$HTTP_STATUS" -ge 200 ] && [ "$HTTP_STATUS" -lt 300 ]; then
+            DEPLOY_ID=$(echo "$HTTP_BODY" | jq -r '.id')
+            
+            # Validate that we got a valid deployment ID
+            if [ -z "$DEPLOY_ID" ] || [ "$DEPLOY_ID" = "null" ]; then
+              echo "::error::Failed to get valid deployment ID, API returned: $HTTP_BODY"
+              exit 1
+            fi
+            
+            echo "Deployment created with ID: $DEPLOY_ID"
+            echo "deploy_id=$DEPLOY_ID" >> $GITHUB_OUTPUT
+            
+            # Set the deployment to in_progress
+            curl -s -X POST \
+              -H "Authorization: token $GITHUB_TOKEN" \
+              -H "Accept: application/vnd.github.v3+json" \
+              -d "{\"state\":\"in_progress\", \"description\":\"Deployment started\"}" \
+              "https://api.github.com/repos/${{ github.repository }}/deployments/$DEPLOY_ID/statuses"
+          else
+            echo "::error::Failed to create deployment, API returned status $HTTP_STATUS: $HTTP_BODY"
+            exit 1
+          fi
+
+      - name: Build Project
+        run: npm run build
+
+      - name: Commit Updated Files
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add package.json CHANGELOG.md .changeset/release-${VERSION}.md
+          git commit -m "chore: update version to $VERSION [skip ci]"
+          git push
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Deploy to Production
+        uses: ./.github/actions/deploy
+        with:
+          environment: 'production'
+          paas_url: ${{ secrets.PAAS_URL }}
+          paas_uuid: ${{ secrets.PAAS_UUID }}
+          paas_api_key: ${{ secrets.PAAS_API_KEY }}
+
+      - name: Wait for and verify deployment
+        id: verify_deployment
+        run: |
+          # Install jq for JSON parsing
+          sudo apt-get install -y jq
+
+          # Store our git SHA for comparison
+          CURRENT_SHA="${{ github.sha }}"
+          echo "Looking for deployment with commit SHA: $CURRENT_SHA"
+
+          # Initialize variables
+          MAX_ATTEMPTS=12
+          ATTEMPT=0
+          WAIT_SECONDS=10
+          DEPLOY_FOUND=false
+
+          while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+            ATTEMPT=$((ATTEMPT+1))
+            echo "Checking deployment status (attempt $ATTEMPT/$MAX_ATTEMPTS)..."
+            
+            # Query Coolify API for deployments
+            DEPLOYMENTS=$(curl -s -X GET \
+              "${{ secrets.PAAS_URL }}/api/v1/deployments/applications/${{ secrets.PAAS_UUID }}" \
+              -H "Authorization: Bearer ${{ secrets.PAAS_API_KEY }}")
+            
+            # Look for deployment with our commit SHA
+            echo "Searching through deployments..."
+            DEPLOYMENT=$(echo $DEPLOYMENTS | jq --arg sha "$CURRENT_SHA" '.[] | select(.git_commit_sha==$sha) | .' -c)
+            
+            if [ -n "$DEPLOYMENT" ]; then
+              DEPLOY_FOUND=true
+              DEPLOY_STATUS=$(echo $DEPLOYMENT | jq -r '.status')
+              echo "Found our deployment with status: $DEPLOY_STATUS"
+              
+              # Check if deployment is complete or failed
+              if [[ "$DEPLOY_STATUS" == "completed" || "$DEPLOY_STATUS" == "successful" || "$DEPLOY_STATUS" == "failed" ]]; then
+                echo "Deployment reached final state: $DEPLOY_STATUS"
+                break
+              fi
+              
+              echo "Deployment still in progress, waiting..."
+            else
+              echo "Our deployment not found yet, waiting..."
+            fi
+            
+            sleep $WAIT_SECONDS
+          done
+
+          # Get application details for URL
+          APP_DETAILS=$(curl -s -X GET \
+            "${{ secrets.PAAS_URL }}/api/v1/applications/${{ secrets.PAAS_UUID }}" \
+            -H "Authorization: Bearer ${{ secrets.PAAS_API_KEY }}")
+
+          # Extract FQDN or preview URL
+          FQDN=$(echo $APP_DETAILS | jq -r '.fqdn')
+          PREVIEW_URL=$(echo $APP_DETAILS | jq -r '.previewUrl')
+
+          if [[ "$FQDN" != "null" && ! -z "$FQDN" ]]; then
+            DEPLOY_URL="https://$FQDN"
+          elif [[ "$PREVIEW_URL" != "null" && ! -z "$PREVIEW_URL" ]]; then
+            DEPLOY_URL="$PREVIEW_URL"
+          else
+            DEPLOY_URL="${{ secrets.PAAS_URL }}/applications/${{ secrets.PAAS_UUID }}"
+          fi
+
+          # Set outputs
+          echo "deploy_url=$DEPLOY_URL" >> $GITHUB_OUTPUT
+
+          if [ "$DEPLOY_FOUND" = true ]; then
+            echo "deploy_status=$DEPLOY_STATUS" >> $GITHUB_OUTPUT
+          else
+            echo "deploy_status=unknown" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Update GitHub Deployment Status
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          DEPLOY_STATUS="${{ steps.verify_deployment.outputs.deploy_status }}"
+          DEPLOY_URL="${{ steps.verify_deployment.outputs.deploy_url }}"
+
+          if [[ "$DEPLOY_STATUS" == "completed" || "$DEPLOY_STATUS" == "successful" ]]; then
+            # Success status
+            curl -s -X POST \
+              -H "Authorization: token $GITHUB_TOKEN" \
+              -H "Accept: application/vnd.github.v3+json" \
+              -d "{\"state\":\"success\", \"description\":\"Deployment successful\", \"environment_url\":\"$DEPLOY_URL\"}" \
+              "https://api.github.com/repos/${{ github.repository }}/deployments/${{ steps.create_deployment.outputs.deploy_id }}/statuses"
+            echo "✅ Deployment successful: $DEPLOY_URL"
+          elif [[ "$DEPLOY_STATUS" == "failed" ]]; then
+            # Failed status
+            curl -s -X POST \
+              -H "Authorization: token $GITHUB_TOKEN" \
+              -H "Accept: application/vnd.github.v3+json" \
+              -d "{\"state\":\"failure\", \"description\":\"Deployment failed\"}" \
+              "https://api.github.com/repos/${{ github.repository }}/deployments/${{ steps.create_deployment.outputs.deploy_id }}/statuses"
+            echo "❌ Deployment failed"
+          else
+            # Unknown or still in progress
+            curl -s -X POST \
+              -H "Authorization: token $GITHUB_TOKEN" \
+              -H "Accept: application/vnd.github.v3+json" \
+              -d "{\"state\":\"in_progress\", \"description\":\"Deployment status: $DEPLOY_STATUS\"}" \
+              "https://api.github.com/repos/${{ github.repository }}/deployments/${{ steps.create_deployment.outputs.deploy_id }}/statuses"
+            echo "⏳ Deployment status: $DEPLOY_STATUS"
+          fi
