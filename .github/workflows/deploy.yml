@@ -54,7 +54,7 @@ jobs:
           PREVIEW_URL=$(echo $APP_DETAILS | jq -r '.previewUrl')
 
           if [[ "$FQDN" != "null" && ! -z "$FQDN" ]]; then
-            DEPLOY_URL="https://$FQDN"
+            DEPLOY_URL="$FQDN"
           elif [[ "$PREVIEW_URL" != "null" && ! -z "$PREVIEW_URL" ]]; then
             DEPLOY_URL="$PREVIEW_URL"
           else
@@ -63,18 +63,3 @@ jobs:
 
           # Set URL as output
           echo "deploy_url=$DEPLOY_URL" >> $GITHUB_OUTPUT
-
-          # Basic availability check
-          echo "Checking if application is responsive..."
-          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "$DEPLOY_URL" || echo "failed")
-
-          if [[ "$HTTP_STATUS" == "failed" ]]; then
-            echo "⚠️ Could not reach $DEPLOY_URL"
-          elif [[ "$HTTP_STATUS" -ge 200 && "$HTTP_STATUS" -lt 400 ]]; then
-            echo "✅ Application is responding with HTTP $HTTP_STATUS"
-          else
-            echo "⚠️ Application returned HTTP status $HTTP_STATUS"
-          fi
-
-          # Always succeed - the GitHub Environment will show the URL regardless
-          echo "Deployment URL: $DEPLOY_URL"
