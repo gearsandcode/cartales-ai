@@ -2,7 +2,7 @@ name: Deploy
 
 on:
   workflow_run:
-    workflows: ['Semantic Release']
+    workflows: ['Release']
     types:
       - completed
     branches:
