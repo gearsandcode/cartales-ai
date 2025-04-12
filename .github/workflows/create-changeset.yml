@@ -14,7 +14,7 @@ jobs:
     name: Create or Update Release PR
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repo
+      - name: 🛒 Checkout Repo
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -28,13 +28,19 @@ jobs:
       - name: Install Dependencies
         run: npm ci
 
-      - name: Create Release Pull Request or Publish
+      - name: Generate GitHub App Token
+        id: generate-token
+        uses: tibdex/github-app-token@v1
+        with:
+          app_id: ${{ secrets.CHANGESET_APP_ID }}
+          private_key: ${{ secrets.CHANGESET_APP_KEY }}
+
+      - name: Create Release Pull Request
         id: changesets
         uses: changesets/action@v1
         with:
-          # This creates a PR with changeset versions & changelogs
           publish: npx changeset version
           commit: 'chore: version packages'
           title: 'chore: version packages'
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
