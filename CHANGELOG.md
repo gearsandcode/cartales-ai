@@ -1,5 +1,13 @@
 # car-story-generator
 
+## 0.2.8
+
+### Patch Changes
+
+- b1bfe2a: ci: added permissions back to changeset-release
+- 34b3763: ci: updates to deploy workflow
+- 34b3763: ci: still testing
+
 ## 0.2.7
 
 ### Patch Changes
