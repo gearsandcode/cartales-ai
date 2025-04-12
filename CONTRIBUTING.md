@@ -1,52 +1,56 @@
 # Contributing to Car Tales AI
 
-## Version Management with Changesets
+## Version Management with Semantic Release
 
-We use [Changesets](https://github.com/changesets/changesets) to manage versions and changelogs.
+We use [Semantic Release](https://github.com/semantic-release/semantic-release) to automate version management and package publishing.
 
-### Adding a Changeset
+### Commit Message Format
 
-When you want to make a change that should be reflected in the version number and changelog:
+Your commit messages must follow the [Conventional Commits](https://www.conventionalcommits.org/) specification:
 
-1. Run `npm run changeset`
-2. Follow the prompts:
+```
+<type>(<scope>): <description>
 
-   - Select the packages affected (typically just this package)
-   - Choose the type of change:
-     - `major`: Breaking changes
-     - `minor`: New features
-     - `patch`: Bug fixes
-   - Write a description of the change (this will appear in the changelog)
+[optional body]
 
-3. Commit the generated changeset file with your changes
+[optional footer(s)]
+```
 
-### Version Bump Rules
+#### Types that trigger releases:
 
-For deterministic version bumps, follow these guidelines:
+- `feat:` - A new feature (minor release)
+- `fix:` - A bug fix (patch release)
+- `perf:` - A performance improvement (patch release)
+- `BREAKING CHANGE:` - Breaking API change (major release, in commit body)
 
-- Use `major` ONLY when:
+#### Types that don't trigger releases:
 
-  - Breaking a public API
-  - Removing a feature
-  - Changing behavior that would break existing user code
+- `docs:` - Documentation changes
+- `style:` - Code style changes (formatting, etc.)
+- `refactor:` - Code changes that neither fix bugs nor add features
+- `test:` - Adding or correcting tests
+- `chore:` - Changes to the build process or auxiliary tools
 
-- Use `minor` for:
+### Examples
 
-  - Adding new features
-  - Extending existing functionality in a backward-compatible way
-  - Deprecating (but not removing) functionality
+```
+feat(story): add new car brand selection option
 
-- Use `patch` for:
-  - Bug fixes
-  - Performance improvements without API changes
-  - Documentation updates that affect code behavior
+fix(generator): correct handling of special characters in story prompts
+
+refactor: optimize image generation pipeline
+
+BREAKING CHANGE: remove legacy API endpoint for story retrieval
+```
 
 ### Automated Releases
 
 Our GitHub Actions workflow automatically:
 
-1. Detects new changesets on the main branch
-2. Creates a PR that updates versions and changelogs
-3. Allows you to review the changes before they're released
+1. Analyzes commits on the main branch
+2. Determines the next version number based on commit types
+3. Updates the CHANGELOG.md file
+4. Creates a GitHub release
+5. Deploys the new version to production
 
-When the PR is merged, the new version is officially released.
+You don't need to manually specify version numbers or create changelog entries.
