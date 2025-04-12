@@ -10,12 +10,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: 🛒 Checkout Repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
           cache: 'npm'
@@ -31,22 +31,15 @@ jobs:
           echo "VERSION=$VERSION" >> $GITHUB_ENV
           echo "Version extracted: $VERSION"
 
-      - name: Update Package Version
-        run: |
-          # Update version in package.json
-          npm version $VERSION --no-git-tag-version
-
-      - name: Generate/Update Changelog
-        run: |
-          # Create a temp changelog entry file
-          echo "---" > .changeset/release-${VERSION}.md
-          echo "\"car-story-generator\": $VERSION" >> .changeset/release-${VERSION}.md
-          echo "---" >> .changeset/release-${VERSION}.md
-          echo "" >> .changeset/release-${VERSION}.md
-          echo "${{ github.event.release.body }}" >> .changeset/release-${VERSION}.md
-
-          # Apply the changeset
-          npx changeset version
+          # Verify the version in package.json matches the tag
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          if [[ "$VERSION" != "$PKG_VERSION" ]]; then
+            echo "::warning::Version mismatch: Tag is $VERSION but package.json has $PKG_VERSION"
+            # We'll continue but note the mismatch - don't update package.json
+            # as that should have been handled by the changeset PR
+          else
+            echo "✅ Version in package.json matches release tag: $VERSION"
+          fi
 
       - name: Create GitHub Deployment
         id: create_deployment
@@ -97,7 +90,7 @@ jobs:
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
-          git add package.json CHANGELOG.md .changeset/release-${VERSION}.md
+          git add package.json CHANGELOG.md
           git commit -m "chore: update version to $VERSION [skip ci]"
           git push
         env:

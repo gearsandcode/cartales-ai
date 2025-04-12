@@ -20,11 +20,26 @@ When you want to make a change that should be reflected in the version number an
 
 3. Commit the generated changeset file with your changes
 
-### Types of Changes
+### Version Bump Rules
 
-- `major`: Breaking changes that require significant adaptation
-- `minor`: New features or improvements that don't break existing functionality
-- `patch`: Bug fixes or small adjustments that maintain compatibility
+For deterministic version bumps, follow these guidelines:
+
+- Use `major` ONLY when:
+
+  - Breaking a public API
+  - Removing a feature
+  - Changing behavior that would break existing user code
+
+- Use `minor` for:
+
+  - Adding new features
+  - Extending existing functionality in a backward-compatible way
+  - Deprecating (but not removing) functionality
+
+- Use `patch` for:
+  - Bug fixes
+  - Performance improvements without API changes
+  - Documentation updates that affect code behavior
 
 ### Automated Releases
 
