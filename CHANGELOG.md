@@ -1,5 +1,11 @@
 # car-story-generator
 
+## 0.2.5
+
+### Patch Changes
+
+- d742d36: ci updates
+
 ## 0.2.4
 
 ### Patch Changes
