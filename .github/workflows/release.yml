@@ -1,4 +1,4 @@
-name: Changeset Release
+name: Release
 
 on:
   push:
