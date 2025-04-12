@@ -13,6 +13,8 @@ jobs:
   release-pr:
     name: Create or Update Release PR
     runs-on: ubuntu-latest
+    outputs:
+      published: ${{ steps.changesets.outputs.published }}
     steps:
       - name: 🛒 Checkout Repo
         uses: actions/checkout@v4
@@ -39,7 +41,6 @@ jobs:
         id: changesets
         uses: changesets/action@v1
         with:
-          # This will automatically publish to npm and create a GitHub release when the PR is merged
           publish: npx changeset publish
           commit: 'chore: version packages'
           title: 'chore: version packages'
@@ -48,7 +49,6 @@ jobs:
 
   deploy:
     needs: release-pr
-    # This ensures this job only runs when changesets actually published something
     if: needs.release-pr.outputs.published == 'true'
     name: Deploy to Production
     runs-on: ubuntu-latest
