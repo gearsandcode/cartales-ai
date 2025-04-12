@@ -1,0 +1,84 @@
+name: 'Deploy to PAAS'
+description: 'Deploys the application to the PAAS platform'
+
+inputs:
+  environment:
+    description: 'Environment to deploy to'
+    required: false
+    default: 'production'
+  paas_url:
+    description: 'PAAS platform URL'
+    required: true
+  paas_uuid:
+    description: 'Application UUID in PAAS'
+    required: true
+  paas_api_key:
+    description: 'API key for PAAS authentication'
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Validate PAAS URL
+      shell: bash
+      run: |
+        echo "Validating that PAAS_URL doesn't end in '/'"
+        echo "${{ inputs.paas_url }}" | grep -P '[^/]$'
+
+    - name: Update source commit SHA in PAAS
+      shell: bash
+      run: |
+        curl -X PATCH \
+          "${{ inputs.paas_url }}/api/v1/applications/${{ inputs.paas_uuid }}" \
+          -H "Authorization: Bearer ${{ inputs.paas_api_key }}" \
+          -H "Content-Type: application/json" \
+          -d "{\"git_commit_sha\": \"${{ github.sha }}\"}"
+
+    - name: Trigger deployment via webhook
+      shell: bash
+      run: |
+        curl -X GET \
+          "${{ inputs.paas_url }}/api/v1/deploy?uuid=${{ inputs.paas_uuid }}&force=false" \
+          -H "Authorization: Bearer ${{ inputs.paas_api_key }}"
+
+    - name: Get application details and URL
+      shell: bash
+      run: |
+        # Install jq if not available
+        if ! command -v jq &> /dev/null; then
+          echo "Installing jq for JSON parsing..."
+          apt-get update && apt-get install -y jq
+        fi
+        
+        # Fetch application details
+        APP_DETAILS=$(curl -s -X GET \
+          "${{ inputs.paas_url }}/api/v1/applications/${{ inputs.paas_uuid }}" \
+          -H "Authorization: Bearer ${{ inputs.paas_api_key }}")
+        
+        # Extract and display deployment URL and FQDN
+        echo "Application Details Retrieved"
+        echo "----------------------------"
+        
+        # Extract application name
+        APP_NAME=$(echo $APP_DETAILS | jq -r '.name')
+        echo "📦 Application: $APP_NAME"
+        
+        # Extract FQDN (Fully Qualified Domain Name) if available
+        FQDN=$(echo $APP_DETAILS | jq -r '.fqdn // "Not configured"')
+        if [[ "$FQDN" != "Not configured" && "$FQDN" != "null" ]]; then
+          echo "🌐 Application URL: https://$FQDN"
+          echo "::set-output name=app_url::https://$FQDN"
+        fi
+        
+        # Show preview URL if available
+        PREVIEW_URL=$(echo $APP_DETAILS | jq -r '.previewUrl // "Not available"')
+        if [[ "$PREVIEW_URL" != "Not available" && "$PREVIEW_URL" != "null" ]]; then
+          echo "🔍 Preview URL: $PREVIEW_URL"
+        fi
+        
+        echo "📊 Coolify Dashboard: ${{ inputs.paas_url }}/applications/${{ inputs.paas_uuid }}"
+        echo "⏱️ Deployment is in progress and may take a few minutes to complete"
+
+    - name: Report deployment status
+      shell: bash
+      run: echo "🚀 Deployment triggered for environment: ${{ inputs.environment }}"
