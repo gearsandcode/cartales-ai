@@ -1,5 +1,11 @@
 # car-story-generator
 
+## 0.2.2
+
+### Patch Changes
+
+- 67520b9: ci: updated release workflow
+
 ## 0.2.1
 
 ### Patch Changes
