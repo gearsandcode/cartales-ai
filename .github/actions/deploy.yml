@@ -22,8 +22,13 @@ runs:
     - name: Validate PAAS URL
       shell: bash
       run: |
-        echo "Validating that PAAS_URL doesn't end in '/'"
-        echo "${{ inputs.paas_url }}" | grep -P '[^/]$'
+        echo "Validating PAAS_URL format..."
+        NORMALIZED_URL=$(echo "${{ inputs.paas_url }}" | awk '{$1=$1; print}' | sed 's:/*$::')
+        if [[ -z "$NORMALIZED_URL" || "$NORMALIZED_URL" == */ ]]; then
+          echo "❌ Invalid PAAS_URL: Ensure it does not end with '/' and is properly formatted."
+          exit 1
+        fi
+        echo "✅ PAAS_URL is valid: $NORMALIZED_URL"
 
     - name: Update source commit SHA in PAAS
       shell: bash
@@ -67,7 +72,7 @@ runs:
         FQDN=$(echo $APP_DETAILS | jq -r '.fqdn // "Not configured"')
         if [[ "$FQDN" != "Not configured" && "$FQDN" != "null" ]]; then
           echo "🌐 Application URL: https://$FQDN"
-          echo "::set-output name=app_url::https://$FQDN"
+          echo "app_url=https://$FQDN" >> $GITHUB_OUTPUT
         fi
         
         # Show preview URL if available
