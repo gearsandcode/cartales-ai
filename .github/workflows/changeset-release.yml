@@ -4,6 +4,8 @@ on:
   push:
     branches:
       - main
+    paths:
+      - '.changeset/**'
 
 permissions:
   contents: write
@@ -13,8 +15,6 @@ jobs:
   release-pr:
     name: Create or Update Release PR
     runs-on: ubuntu-latest
-    outputs:
-      published: ${{ steps.changesets.outputs.published }}
     steps:
       - name: 🛒 Checkout Repo
         uses: actions/checkout@v4
@@ -37,59 +37,12 @@ jobs:
           app_id: ${{ secrets.CHANGESET_APP_ID }}
           private_key: ${{ secrets.CHANGESET_APP_KEY }}
 
-      - name: Create Release Pull Request or Publish
+      - name: Create Release Pull Request
         id: changesets
         uses: changesets/action@v1
         with:
-          publish: npx changeset publish
+          publish: npx changeset version
           commit: 'chore: version packages'
           title: 'chore: version packages'
         env:
           GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
-
-  deploy:
-    needs: release-pr
-    if: needs.release-pr.outputs.published == 'true'
-    name: Deploy to Production
-    runs-on: ubuntu-latest
-    environment:
-      name: production
-      url: ${{ steps.verify_deployment.outputs.deploy_url }}
-    steps:
-      - name: 🛒 Checkout Repo
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version-file: '.nvmrc'
-          cache: 'npm'
-
-      - name: Install Dependencies
-        run: npm ci
-
-      - name: Build Project
-        run: npm run build
-
-      - name: Deploy to Production
-        uses: ./.github/actions/deploy
-        with:
-          environment: 'production'
-          paas_url: ${{ secrets.PAAS_URL }}
-          paas_uuid: ${{ secrets.PAAS_UUID }}
-          paas_api_key: ${{ secrets.PAAS_API_KEY }}
-
-      - name: Wait for and verify deployment
-        id: verify_deployment
-        run: |
-          # Your existing deployment verification code
-          # Install jq for JSON parsing
-          sudo apt-get install -y jq
-
-          # Store our git SHA for comparison
-          CURRENT_SHA="${{ github.sha }}"
-          echo "Looking for deployment with commit SHA: $CURRENT_SHA"
-
-          # Rest of your verification script
