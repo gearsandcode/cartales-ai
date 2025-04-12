@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     if: "${{ contains(github.event.head_commit.message, 'chore: version packages') }}"
     environment:
-      name: production
+      name: Production
       url: ${{ steps.verify_deployment.outputs.deploy_url }}
     steps:
       - name: 🛒 Checkout Repo
@@ -36,7 +36,7 @@ jobs:
       - name: Deploy to Production
         uses: ./.github/actions/deploy
         with:
-          environment: 'production'
+          environment: 'Production'
           paas_url: ${{ secrets.PAAS_URL }}
           paas_uuid: ${{ secrets.PAAS_UUID }}
           paas_api_key: ${{ secrets.PAAS_API_KEY }}

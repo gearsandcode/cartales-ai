@@ -5,7 +5,7 @@ inputs:
   environment:
     description: 'Environment to deploy to'
     required: false
-    default: 'production'
+    default: 'Production'
   paas_url:
     description: 'PAAS platform URL'
     required: true
