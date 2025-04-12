@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google';
 import './globals.css';
 import { GitHubCorner } from '@/components/github-corner';
 import { Coffee, Heart } from '@phosphor-icons/react/dist/ssr';
+import pkg from '../../package.json';
 
 const inter = Inter({
   subsets: ['latin'],
@@ -28,7 +29,7 @@ export default function RootLayout({
         <footer className="mb-6 text-center text-sm text-muted-foreground px-4">
           <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-1 flex-wrap">
             <div className="flex items-center gap-1">
-              <span>Built with</span>
+              <span>An AI experiment built with</span>
               <Heart weight="fill" className="h-4 w-4" />
               <span>+</span>
               <Coffee weight="fill" className="h-4 w-4" />
@@ -44,7 +45,18 @@ export default function RootLayout({
                 Jesse Clark (gearsandcode)
               </a>
             </div>
-            <div>using Claude API, Next.js, Tailwind, React, and Vercel.</div>
+            <div>using Claude API, Next.js, Tailwind, React, and Coolify.</div>
+          </div>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-1 flex-wrap">
+            <div className="flex items-center gap-1 text-center sm:text-left">
+              <span className="text-center text-sm leading-loose text-muted-foreground md:text-left">
+                © {new Date().getFullYear()} Couple of Blocks, LLC. All rights
+                reserved.
+              </span>
+              <span className="text-center text-xs text-muted-foreground">
+                Version {pkg.version}
+              </span>
+            </div>
           </div>
           <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-1 flex-wrap">
             <div className="flex items-center gap-1 text-center sm:text-left">
