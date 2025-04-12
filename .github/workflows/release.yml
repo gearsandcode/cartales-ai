@@ -14,6 +14,9 @@ jobs:
   release:
     name: Create release
     runs-on: ubuntu-latest
+    outputs:
+      new_release_published: ${{ steps.semantic.outputs.new_release_published }}
+      new_release_version: ${{ steps.semantic.outputs.new_release_version }}
     steps:
       - name: 🛒 Checkout Repo
         uses: actions/checkout@v4
@@ -38,6 +41,79 @@ jobs:
           private_key: ${{ secrets.CHANGESET_APP_KEY }}
 
       - name: Semantic Release
+        id: semantic
         env:
           GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
-        run: npx semantic-release
+        run: |
+          # Run semantic-release with output capturing
+          npx semantic-release > semantic-output.txt || true
+
+          # Check if a new release was published by looking for the success message
+          if grep -q "Published release" semantic-output.txt; then
+            echo "new_release_published=true" >> $GITHUB_OUTPUT
+            
+            # Extract the version (this regex finds version numbers)
+            VERSION=$(grep -o 'Published release [0-9]\+\.[0-9]\+\.[0-9]\+' semantic-output.txt | grep -o '[0-9]\+\.[0-9]\+\.[0-9]\+')
+            echo "new_release_version=$VERSION" >> $GITHUB_OUTPUT
+            echo "✅ New release published: $VERSION"
+          else
+            echo "new_release_published=false" >> $GITHUB_OUTPUT
+            echo "No new release published"
+          fi
+
+  deploy:
+    name: Deploy to Production
+    needs: release
+    if: ${{ needs.release.outputs.new_release_published == 'true' }}
+    runs-on: ubuntu-latest
+    environment:
+      name: Production
+      url: ${{ steps.verify_deployment.outputs.deploy_url }}
+    steps:
+      - name: 🛒 Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build Project
+        run: npm run build
+
+      - name: Deploy to Production
+        uses: ./.github/actions/deploy
+        with:
+          environment: 'Production'
+          paas_url: ${{ secrets.PAAS_URL }}
+          paas_uuid: ${{ secrets.PAAS_UUID }}
+          paas_api_key: ${{ secrets.PAAS_API_KEY }}
+
+      - name: Wait for and verify deployment
+        id: verify_deployment
+        run: |
+          # Get application details for URL
+          APP_DETAILS=$(curl -s -X GET \
+            "${{ secrets.PAAS_URL }}/api/v1/applications/${{ secrets.PAAS_UUID }}" \
+            -H "Authorization: Bearer ${{ secrets.PAAS_API_KEY }}")
+
+          # Extract FQDN or preview URL
+          FQDN=$(echo $APP_DETAILS | jq -r '.fqdn')
+          PREVIEW_URL=$(echo $APP_DETAILS | jq -r '.previewUrl')
+
+          if [[ "$FQDN" != "null" && ! -z "$FQDN" ]]; then
+            DEPLOY_URL="$FQDN"
+          elif [[ "$PREVIEW_URL" != "null" && ! -z "$PREVIEW_URL" ]]; then
+            DEPLOY_URL="$PREVIEW_URL"
+          else
+            DEPLOY_URL="${{ secrets.PAAS_URL }}/applications/${{ secrets.PAAS_UUID }}"
+          fi
+
+          # Set URL as output
+          echo "deploy_url=$DEPLOY_URL" >> $GITHUB_OUTPUT
