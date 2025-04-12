@@ -1,5 +1,11 @@
 # car-story-generator
 
+## 0.2.7
+
+### Patch Changes
+
+- dc5dc47: ci: still testing
+
 ## 0.2.6
 
 ### Patch Changes
