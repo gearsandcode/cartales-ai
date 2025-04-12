@@ -1,5 +1,11 @@
 # car-story-generator
 
+## 0.2.3
+
+### Patch Changes
+
+- 171e5d0: Changes to changeset deployment
+
 ## 0.2.2
 
 ### Patch Changes
