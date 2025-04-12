@@ -8,6 +8,9 @@ jobs:
   process-release:
     name: Release process
     runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: ${{ steps.verify_deployment.outputs.deploy_url }}
     steps:
       - name: 🛒 Checkout Repo
         uses: actions/checkout@v4
@@ -22,73 +25,6 @@ jobs:
 
       - name: Install Dependencies
         run: npm ci
-
-      - name: Extract Version from Tag
-        id: get_version
-        run: |
-          # Remove 'v' prefix if present (v1.2.3 -> 1.2.3)
-          VERSION=${GITHUB_REF_NAME#v}
-          echo "VERSION=$VERSION" >> $GITHUB_ENV
-          echo "Version extracted: $VERSION"
-
-          # Verify the version in package.json matches the tag
-          PKG_VERSION=$(node -p "require('./package.json').version")
-          if [[ "$VERSION" != "$PKG_VERSION" ]]; then
-            echo "::warning::Version mismatch: Tag is $VERSION but package.json has $PKG_VERSION"
-            # We'll continue but note the mismatch - don't update package.json
-            # as that should have been handled by the changeset PR
-          else
-            echo "✅ Version in package.json matches release tag: $VERSION"
-          fi
-
-      - name: Generate GitHub App Token
-        id: generate-token
-        uses: ./.github/actions/generate-token
-        with:
-          app_id: ${{ secrets.CHANGESET_APP_ID }} # Reuse the same app or use different app secrets
-          private_key: ${{ secrets.CHANGESET_APP_KEY }}
-
-      - name: Create GitHub Deployment
-        id: create_deployment
-        env:
-          GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
-        run: |
-          # Store full response for debugging
-          HTTP_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST \
-            -H "Authorization: token $GITHUB_TOKEN" \
-            -H "Accept: application/vnd.github.v3+json" \
-            -d "{\"ref\":\"${{ github.ref }}\", \"environment\":\"production\", \"description\":\"Deploying version $VERSION\", \"auto_merge\":false}" \
-            "https://api.github.com/repos/${{ github.repository }}/deployments")
-
-          # Extract status code and response body
-          HTTP_STATUS=$(echo "$HTTP_RESPONSE" | tail -n1)
-          HTTP_BODY=$(echo "$HTTP_RESPONSE" | sed '$ d')
-
-          echo "GitHub API status code: $HTTP_STATUS"
-
-          # Check if request was successful
-          if [ "$HTTP_STATUS" -ge 200 ] && [ "$HTTP_STATUS" -lt 300 ]; then
-            DEPLOY_ID=$(echo "$HTTP_BODY" | jq -r '.id')
-            
-            # Validate that we got a valid deployment ID
-            if [ -z "$DEPLOY_ID" ] || [ "$DEPLOY_ID" = "null" ]; then
-              echo "::error::Failed to get valid deployment ID, API returned: $HTTP_BODY"
-              exit 1
-            fi
-            
-            echo "Deployment created with ID: $DEPLOY_ID"
-            echo "deploy_id=$DEPLOY_ID" >> $GITHUB_OUTPUT
-            
-            # Set the deployment to in_progress
-            curl -s -X POST \
-              -H "Authorization: token $GITHUB_TOKEN" \
-              -H "Accept: application/vnd.github.v3+json" \
-              -d "{\"state\":\"in_progress\", \"description\":\"Deployment started\"}" \
-              "https://api.github.com/repos/${{ github.repository }}/deployments/$DEPLOY_ID/statuses"
-          else
-            echo "::error::Failed to create deployment, API returned status $HTTP_STATUS: $HTTP_BODY"
-            exit 1
-          fi
 
       - name: Build Project
         run: npm run build
