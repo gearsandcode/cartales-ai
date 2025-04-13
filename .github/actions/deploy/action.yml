@@ -24,6 +24,28 @@ outputs:
 runs:
   using: 'composite'
   steps:
+    - name: Validate PAAS URL
+      id: validate-paas-url
+      shell: bash
+      run: |
+        echo "Validating PAAS_URL format..."
+        NORMALIZED_URL=$(echo "${{ inputs.paas_url }}" | awk '{$1=$1; print}' | sed 's:/*$::')
+        if [[ -z "$NORMALIZED_URL" || "$NORMALIZED_URL" == */ ]]; then
+          echo "❌ Invalid PAAS_URL: Ensure it does not end with '/' and is properly formatted."
+          exit 1
+        fi
+        echo "✅ PAAS_URL is valid: $NORMALIZED_URL"
+
+    - name: Update source commit SHA in PAAS
+      id: update-source-sha
+      shell: bash
+      run: |
+        curl -X PATCH \
+          "${{ inputs.paas_url }}/api/v1/applications/${{ inputs.paas_uuid }}" \
+          -H "Authorization: Bearer ${{ inputs.paas_api_key }}" \
+          -H "Content-Type: application/json" \
+          -d "{\"git_commit_sha\": \"${{ github.sha }}\"}"
+
     - name: Trigger deployment via webhook
       id: trigger-deployment
       shell: bash
@@ -47,8 +69,32 @@ runs:
           "${{ inputs.paas_url }}/api/v1/applications/${{ inputs.paas_uuid }}" \
           -H "Authorization: Bearer ${{ inputs.paas_api_key }}")
 
+        # Extract and display deployment URL and FQDN
+        echo "Application Details Retrieved"
+        echo "----------------------------"
+
+        # Extract application name
+        APP_NAME=$(echo $APP_DETAILS | jq -r '.name')
+        echo "Application: $APP_NAME"
+
         # Extract FQDN (Fully Qualified Domain Name) if available
         FQDN=$(echo $APP_DETAILS | jq -r '.fqdn // "Not configured"')
         if [[ "$FQDN" != "Not configured" && "$FQDN" != "null" ]]; then
+          echo "Application URL: $FQDN"
           echo "app_url=$FQDN" >> $GITHUB_OUTPUT
         fi
+
+        # Show preview URL if available
+        PREVIEW_URL=$(echo $APP_DETAILS | jq -r '.previewUrl // "Not available"')
+        if [[ "$PREVIEW_URL" != "Not available" && "$PREVIEW_URL" != "null" ]]; then
+          echo "Preview URL: $PREVIEW_URL"
+        fi
+
+        echo "Coolify Dashboard: ${{ inputs.paas_url }}/applications/${{ inputs.paas_uuid }}"
+        echo "Deployment is in progress and may take a few minutes to complete"
+
+    - name: Report deployment status
+      id: report-deployment-status
+      shell: bash
+      run: |
+        echo "Deployment triggered for environment: ${{ inputs.environment }}"
