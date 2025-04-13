@@ -1,4 +1,4 @@
-# Contributing to Car Tales AI
+# Contributing to Car Tales
 
 ## Version Management with Semantic Release
 
