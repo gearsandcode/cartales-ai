@@ -1,4 +1,4 @@
-# CarTales AI
+# CarTales
 
 [![Coverage Status](https://coveralls.io/repos/github/gearsandcode/cartales-ai/badge.svg?branch=add-tests)](https://coveralls.io/github/gearsandcode/cartales-ai?branch=add-tests)
 [![Vercel](https://img.shields.io/github/deployments/gearsandcode/cartales-ai/Production?label=vercel&logo=vercel&logoColor=white)](https://cartales-ai.vercel.app)

@@ -12,7 +12,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: 'Car Tales AI',
+  title: 'Car Tales',
   description: "Generate personalized stories about your car's history",
 };
 
