@@ -1,3 +1,10 @@
+## [0.2.7](https://github.com/gearsandcode/cartales-ai/compare/v0.2.6...v0.2.7) (2025-04-15)
+
+
+### Bug Fixes
+
+* updated footer ([#66](https://github.com/gearsandcode/cartales-ai/issues/66)) ([5915808](https://github.com/gearsandcode/cartales-ai/commit/5915808fa8c0d05e36a2462263514bea0b372f82))
+
 ## [0.2.6](https://github.com/gearsandcode/cartales-ai/compare/v0.2.5...v0.2.6) (2025-04-15)
 
 
