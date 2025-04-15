@@ -36,17 +36,6 @@ runs:
         fi
         echo "✅ PAAS_URL is valid: $NORMALIZED_URL"
 
-    - name: Update source commit SHA in PAAS
-      id: update-source-sha
-      shell: bash
-      run: |
-        echo "Source commit set to: ${{ github.sha }}"
-        curl -X PATCH \
-          "${{ inputs.paas_url }}/api/v1/applications/${{ inputs.paas_uuid }}" \
-          -H "Authorization: Bearer ${{ inputs.paas_api_key }}" \
-          -H "Content-Type: application/json" \
-          -d "{\"git_commit_sha\": \"${{ github.sha }}\"}"
-
     - name: Trigger deployment via webhook
       id: trigger-deployment
       shell: bash
