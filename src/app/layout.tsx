@@ -50,8 +50,8 @@ export default function RootLayout({
           <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-1 flex-wrap">
             <div className="flex items-center gap-1 text-center sm:text-left">
               <span className="text-center text-sm leading-loose text-muted-foreground md:text-left">
-                © {new Date().getFullYear()} Couple of Blocks, LLC. All rights
-                reserved.
+                Copyright {new Date().getFullYear()} Couple of Blocks, LLC. All
+                rights reserved.
               </span>
               <span className="text-center text-xs text-muted-foreground">
                 Version {pkg.version}
