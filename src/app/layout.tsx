@@ -42,7 +42,7 @@ export default function RootLayout({
                 rel="noopener noreferrer"
                 className="text-primary hover:underline"
               >
-                Jesse Clark (gearsandcode)
+                Jesse C (gearsandcode)
               </a>
             </div>
             <div>using Claude API, Next.js, Tailwind, React, and Coolify.</div>
